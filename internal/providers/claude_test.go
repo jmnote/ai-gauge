@@ -15,7 +15,7 @@ func TestClaudeExtraUsage(t *testing.T) {
 		t.Fatalf("monthly-only display = %#v", display)
 	}
 	bucket := display.Groups[0].Buckets[0]
-	if bucket.Label != "mo" || bucket.Detail != "12.21/20" || bucket.DetailHover != "" || math.Abs(bucket.Remaining-38.95) > 1e-9 || bucket.ResetTime != "" {
+	if bucket.Label != "mo" || bucket.Detail != "7.79/20" || bucket.DetailFull != "7.79/20" || math.Abs(bucket.Remaining-38.95) > 1e-9 || bucket.ResetTime != "" {
 		t.Fatalf("monthly bucket = %#v", bucket)
 	}
 	regular := connectedClaude(t, readFixture(t, "claude-usage.json"))
@@ -78,10 +78,12 @@ func TestClaudeExtraUsageScaleAndOverage(t *testing.T) {
 		detail                   string
 		remaining                float64
 	}{
-		{"cents", 2, 1221, 2000, 61.05, "12.21/20", 38.95},
-		{"whole units", 0, 1221, 2000, 61.05, "1221/2000", 38.95},
-		{"tenths", 1, 1221, 2000, 61.05, "122.1/200", 38.95},
-		{"overage", 2, 2050, 2000, 102.5, "20.5/20", 0},
+		{"cents", 2, 1221, 2000, 61.05, "7.79/20", 38.95},
+		{"whole units", 0, 1221, 2000, 61.05, "779/2000", 38.95},
+		{"tenths", 1, 1221, 2000, 61.05, "77.9/200", 38.95},
+		{"unused", 2, 0, 2000, 0, "20/20", 100},
+		{"exhausted", 2, 2000, 2000, 100, "0/20", 0},
+		{"overage", 2, 2050, 2000, 102.5, "0/20", 0},
 		{"zero limit", 2, 0, 0, 0, "0/0", 100},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

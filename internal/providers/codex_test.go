@@ -23,7 +23,7 @@ func TestCodexCapturedUsage(t *testing.T) {
 		remaining           float64
 	}{
 		{"usage_codex.json", "5h", "", 0},
-		{"usage_codex.monthly.json", "7d", "36.8/1000", 96},
+		{"usage_codex.monthly.json", "7d", "963.2/1000", 96},
 	} {
 		t.Run(tc.file, func(t *testing.T) {
 			usage := connectedCodex(t, capturedUsageFixture(t, tc.file))
@@ -43,8 +43,8 @@ func TestCodexCapturedUsage(t *testing.T) {
 				t.Errorf("detail = %q, want %q", buckets[1].Detail, tc.detail)
 			}
 			if tc.detail != "" {
-				if buckets[1].DetailHover != "" {
-					t.Errorf("detail hover = %q, want no hover for unabridged amounts", buckets[1].DetailHover)
+				if buckets[1].DetailFull != "963.2/1000" {
+					t.Errorf("full detail = %q, want remaining amount without abbreviation", buckets[1].DetailFull)
 				}
 				wantReset := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC).Add(2105558 * time.Second).Format(time.RFC3339)
 				if buckets[1].Label != "mo" || buckets[1].Remaining != tc.remaining || buckets[1].ResetTime != wantReset {
@@ -64,13 +64,13 @@ func TestCodexIndividualLimitValidation(t *testing.T) {
 		valid          bool
 		detail         string
 	}{
-		{"valid", `"individual_limit": {`, `"individual_limit": {`, true, "36.8/1000"},
+		{"valid", `"individual_limit": {`, `"individual_limit": {`, true, "963.2/1000"},
 		{"invalid amount", `"used": "36.79748725891113"`, `"used": "NaN"`, false, ""},
 		{"negative limit", `"limit": "1000"`, `"limit": "-1"`, false, ""},
 		{"missing amount", `"used": "36.79748725891113"`, `"used": null`, false, ""},
 		{"invalid percentage", `"remaining_percent": 96`, `"remaining_percent": 101`, false, ""},
 		{"invalid reset", `"reset_after_seconds": 2105558`, `"reset_after_seconds": -1`, false, ""},
-		{"zero limit", `"limit": "1000"`, `"limit": "0"`, true, "36.8/0"},
+		{"zero limit", `"limit": "1000"`, `"limit": "0"`, true, "0/0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			usage := connectedCodex(t, []byte(strings.Replace(fixture, tc.from, tc.to, 1)))

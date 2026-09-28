@@ -3,6 +3,7 @@ import {
   shouldCountFailure, shouldScheduleRetry, isExpectedSetupState,
   shouldKeepStaleData, retryDelay, providerVisibilityAction,
   normalizeWindowWidth, providerTypeLabel, shouldShowProviderUser, DEFAULT_REFRESH_SECONDS,
+  usageDetailRows,
 } from '/logic.mjs';
 import { createDropdown } from '/ui/dropdown.mjs';
 
@@ -190,6 +191,7 @@ function ensureProviderState(id) {
       displayName: '',
       plan: '',
       resetCredits: null,
+      usageDetails: [],
     });
   }
   return providerState.get(id);
@@ -219,6 +221,7 @@ function updateStatus(id, dotId, statusCardId, status, failureCount, lastSuccess
     ...(displayName ? [createTooltipRow('Display name', displayName)] : []),
     ...(plan ? [createTooltipRow('Plan', plan)] : []),
     ...(Number.isFinite(resetCredits) ? [createTooltipRow('Reset credits', `${resetCredits}`)] : []),
+    ...providerState.get(id).usageDetails.map(({ label, value }) => createTooltipRow(label, value)),
     createTooltipRow('Fetch fails', `${failureCount}`),
     createTooltipRow('Last fetch', successValue),
     ...(lastError ? [createTooltipRow('Last error', lastError)] : []),
@@ -607,6 +610,7 @@ function renderNonUsageState(id, usage) {
     state.email = '';
     state.displayName = '';
     state.resetCredits = null;
+    state.usageDetails = [];
     updateProviderUser(id);
     updateResetCredits(id);
     document.getElementById(meta.groupsId).replaceChildren();
@@ -635,6 +639,7 @@ function renderUsage(id, usage) {
   showProviderError(meta.errorId, '');
   state.plan = usage.plan || '';
   state.resetCredits = Number.isFinite(usage.resetCredits) ? usage.resetCredits : null;
+  state.usageDetails = usageDetailRows(usage.groups);
   updateResetCredits(id);
   updateProviderStatus(id);
   container.replaceChildren();
@@ -686,8 +691,8 @@ function appendGroupElement(container, name) {
   return groupElement;
 }
 
-// Reset times and abbreviated amounts expand in place on hover.
-function renderBucketRow(container, label, detail, remaining, resetTime, nowMs, detailHover) {
+// Reset times expand on hover; full amounts are available in the dot menu.
+function renderBucketRow(container, label, detail, remaining, resetTime, nowMs) {
   const clamped = Math.max(0, Math.min(100, remaining));
   const limit = document.createElement('div');
   limit.className = 'limit';
@@ -721,10 +726,6 @@ function renderBucketRow(container, label, detail, remaining, resetTime, nowMs, 
     const detailEl = document.createElement('span');
     detailEl.className = 'limit-detail';
     detailEl.textContent = detail;
-    if (detailHover && detailHover !== detail) {
-      detailEl.dataset.defaultText = detail;
-      detailEl.dataset.hoverText = detailHover;
-    }
     value.append(detailEl);
   }
   const percentEl = document.createElement('span');
@@ -751,7 +752,7 @@ function renderBucketRow(container, label, detail, remaining, resetTime, nowMs, 
 // own 5h/weekly pair) into `container`.
 function renderBuckets(container, buckets, nowMs) {
   for (const bucket of buckets) {
-    renderBucketRow(container, bucket.label, bucket.detail, bucket.remaining, bucket.resetTime, nowMs, bucket.detailHover);
+    renderBucketRow(container, bucket.label, bucket.detail, bucket.remaining, bucket.resetTime, nowMs);
   }
 }
 
@@ -1220,7 +1221,7 @@ document.addEventListener('keydown', event => {
   }
 });
 
-// Reset times and amounts show their full text on hover and revert on mouse out.
+// Reset times show their full text on hover and revert on mouse out.
 document.addEventListener('mouseover', event => {
   const element = event.target.closest?.('[data-hover-text]');
   if (element && !element.contains(event.relatedTarget)) {

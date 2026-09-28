@@ -30,9 +30,9 @@ type DisplayUsageGroup struct {
 // provider-specific bucket types this converts from. Detail carries optional
 // supplementary count text, such as "84/200" for Copilot.
 type DisplayUsageBucket struct {
-	Label       string  `json:"label"`
-	Detail      string  `json:"detail,omitempty"`
-	DetailHover string  `json:"detailHover,omitempty"`
-	Remaining   float64 `json:"remaining"`
-	ResetTime   string  `json:"resetTime"`
+	Label      string  `json:"label"`
+	Detail     string  `json:"detail,omitempty"`
+	DetailFull string  `json:"detailFull,omitempty"`
+	Remaining  float64 `json:"remaining"`
+	ResetTime  string  `json:"resetTime"`
 }

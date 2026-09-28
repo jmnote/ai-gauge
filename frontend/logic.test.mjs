@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  usageDetailRows,
   DEFAULT_REFRESH_SECONDS,
   DEFAULT_WINDOW_WIDTH,
   MAX_REFRESH_SECONDS,
@@ -376,3 +377,15 @@ for (const fixture of thresholdFixtures) {
     assert.deepEqual(normalizeConfig(config).thresholds, fixture.expected);
   });
 }
+
+test('dot menu shows full remaining amounts and skips percentage-only windows', () => {
+  assert.deepEqual(usageDetailRows([{ name: '', buckets: [
+    { label: '5h', remaining: 50 },
+    { label: 'mo', detail: '21k/25k', detailFull: '21369.57/25000' },
+  ] }]), [{ label: 'mo remaining', value: '21369.57/25000' }]);
+  assert.deepEqual(usageDetailRows([{ name: 'Premium', buckets: [
+    { label: 'mo', detail: '375/500' },
+  ] }]), [{ label: 'Premium mo remaining', value: '375/500' }]);
+  assert.deepEqual(usageDetailRows(), []);
+  assert.deepEqual(usageDetailRows(null), []);
+});

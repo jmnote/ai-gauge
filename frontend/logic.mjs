@@ -243,3 +243,14 @@ export function badgeClass(status) {
   if (status === 'temporary_error' || status === 'usage_unavailable' || status === 'unsupported_cli') return 'is-blocked';
   return '';
 }
+
+// Dot-menu amounts use full remaining/limit values, with a fallback for providers
+// whose normal detail is already unabridged (such as Copilot).
+export function usageDetailRows(groups = []) {
+  return (groups || []).flatMap(group => (group.buckets || []).flatMap(bucket => {
+    const value = bucket.detailFull || bucket.detail;
+    if (!value) return [];
+    const name = [group.name, bucket.label].filter(Boolean).join(' ');
+    return [{ label: `${name} remaining`, value }];
+  }));
+}
