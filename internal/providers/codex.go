@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -29,33 +31,6 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 		return display
 	}
 
-	primary := u.RateLimit.PrimaryWindow
-	secondary := u.RateLimit.SecondaryWindow
-	for _, window := range []struct {
-		name  string
-		used  *float64
-		reset *int
-	}{
-		{"primary_window", primary.UsedPercent, primary.ResetAfterSeconds},
-		{"secondary_window", secondary.UsedPercent, secondary.ResetAfterSeconds},
-	} {
-		var err error
-		switch {
-		case window.used == nil:
-			err = fmt.Errorf("rate_limit.%s.used_percent is missing or null", window.name)
-		case window.reset == nil:
-			err = fmt.Errorf("rate_limit.%s.reset_after_seconds is missing or null", window.name)
-		case *window.used < 0 || *window.used > 100:
-			err = fmt.Errorf("rate_limit.%s.used_percent = %g; expected 0-100", window.name, *window.used)
-		case *window.reset < 0:
-			err = fmt.Errorf("rate_limit.%s.reset_after_seconds = %d; expected >= 0", window.name, *window.reset)
-		}
-		if err != nil {
-			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
-			return display
-		}
-	}
-
 	now := time.Now()
 	if parsed, err := time.Parse(time.RFC3339, u.FetchedAt); err == nil {
 		now = parsed
@@ -66,14 +41,74 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 		}
 		return now.Add(time.Duration(seconds) * time.Second).Format(time.RFC3339)
 	}
+	var buckets []DisplayUsageBucket
+	for _, window := range []struct {
+		name  string
+		label string
+		data  *CodexUsageWindow
+	}{
+		{"primary_window", "5h", u.RateLimit.PrimaryWindow},
+		{"secondary_window", "7d", u.RateLimit.SecondaryWindow},
+	} {
+		if window.data == nil {
+			continue
+		}
+		used, reset := window.data.UsedPercent, window.data.ResetAfterSeconds
+		var err error
+		switch {
+		case used == nil:
+			err = fmt.Errorf("rate_limit.%s.used_percent is missing or null", window.name)
+		case reset == nil:
+			err = fmt.Errorf("rate_limit.%s.reset_after_seconds is missing or null", window.name)
+		case *used < 0 || *used > 100:
+			err = fmt.Errorf("rate_limit.%s.used_percent = %g; expected 0-100", window.name, *used)
+		case *reset < 0:
+			err = fmt.Errorf("rate_limit.%s.reset_after_seconds = %d; expected >= 0", window.name, *reset)
+		}
+		if err != nil {
+			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
+			return display
+		}
+		label := window.label
+		if seconds := window.data.LimitWindowSeconds; seconds > 0 {
+			switch {
+			case seconds%86400 == 0:
+				label = fmt.Sprintf("%dd", seconds/86400)
+			case seconds%3600 == 0:
+				label = fmt.Sprintf("%dh", seconds/3600)
+			default:
+				label = (time.Duration(seconds) * time.Second).String()
+			}
+		}
+		buckets = append(buckets, DisplayUsageBucket{Label: label, Remaining: 100 - *used, ResetTime: toResetTime(*reset)})
+	}
+
+	if limit := u.SpendControl.IndividualLimit; limit != nil {
+		used, usedErr := strconv.ParseFloat(limit.Used, 64)
+		total, totalErr := strconv.ParseFloat(limit.Limit, 64)
+		var err error
+		if usedErr != nil || totalErr != nil || math.IsNaN(used) || math.IsInf(used, 0) || math.IsNaN(total) || math.IsInf(total, 0) || used < 0 || total < 0 {
+			err = fmt.Errorf("spend_control.individual_limit.used and limit must be non-negative finite numbers")
+		} else if limit.RemainingPercent == nil || *limit.RemainingPercent < 0 || *limit.RemainingPercent > 100 || limit.ResetAfterSeconds == nil || *limit.ResetAfterSeconds < 0 {
+			err = fmt.Errorf("spend_control.individual_limit requires remaining_percent in 0-100 and reset_after_seconds >= 0")
+		}
+		if err != nil {
+			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
+			return display
+		}
+		buckets = append(buckets, DisplayUsageBucket{
+			Label: "mo", Detail: formatUsageAmount(used) + "/" + formatUsageAmount(total),
+			DetailHover: formatUsageHoverAmount(used) + "/" + formatUsageHoverAmount(total),
+			Remaining:   *limit.RemainingPercent, ResetTime: toResetTime(*limit.ResetAfterSeconds),
+		})
+	}
+	if len(buckets) == 0 {
+		display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, fmt.Errorf("no usage limits available in response")))
+		return display
+	}
 
 	display.Plan = u.PlanType
-	display.Groups = []DisplayUsageGroup{{
-		Buckets: []DisplayUsageBucket{
-			{Label: "5h", Remaining: 100 - *primary.UsedPercent, ResetTime: toResetTime(*primary.ResetAfterSeconds)},
-			{Label: "7d", Remaining: 100 - *secondary.UsedPercent, ResetTime: toResetTime(*secondary.ResetAfterSeconds)},
-		},
-	}}
+	display.Groups = []DisplayUsageGroup{{Buckets: buckets}}
 	display.Status = StatusConnected
 	return display
 }

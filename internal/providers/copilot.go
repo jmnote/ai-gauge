@@ -37,7 +37,7 @@ func (u CopilotUsage) ToDisplay() DisplayUsage {
 	// since quota_reset_date is monthly either way. No premium_interactions
 	// snapshot means no premium request allowance at all, not an unlimited
 	// one, so the zero-value bucket (0% remaining, no detail) stands.
-	bucket := DisplayUsageBucket{Label: "monthly"}
+	bucket := DisplayUsageBucket{Label: "mo"}
 	if snapshot, ok := u.QuotaSnapshots["premium_interactions"]; ok {
 		bucket.Remaining = snapshot.PercentRemaining
 		bucket.ResetTime = u.QuotaResetDate

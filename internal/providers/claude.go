@@ -39,9 +39,7 @@ func displayBucket(label string, window claudeUsageWindow) (DisplayUsageBucket, 
 	}, nil
 }
 
-// ToDisplay validates each window (5h/7d required, the per-model weekly
-// windows optional and undocumented) and converts utilization into
-// remaining percentage.
+// ToDisplay converts reported windows and enabled extra usage into remaining percentages.
 func (u ClaudeUsage) ToDisplay() DisplayUsage {
 	displayName := strings.TrimSpace(u.AccountDisplayName)
 	display := DisplayUsage{Plan: u.Plan, User: displayName, DisplayName: displayName, FetchedAt: u.FetchedAt, DiagnosisFields: u.DiagnosisFields}
@@ -85,6 +83,20 @@ func (u ClaudeUsage) ToDisplay() DisplayUsage {
 		if bucket, err := displayBucket("7d (Sonnet)", *u.SevenDaySonnet); err == nil {
 			buckets = append(buckets, bucket)
 		}
+	}
+
+	if extra := u.ExtraUsage; extra != nil && extra.IsEnabled {
+		bucket, err := displayBucket("mo", claudeUsageWindow{Utilization: extra.Utilization})
+		if err == nil && (extra.MonthlyLimit == nil || extra.UsedCredits == nil || *extra.MonthlyLimit < 0 || *extra.UsedCredits < 0) {
+			err = fmt.Errorf("extra_usage requires non-negative monthly_limit and used_credits")
+		}
+		if err != nil {
+			display.applyDiagnosis(usageUnreadableDiagnosis("Claude", ReasonUnsupportedResponse, err))
+			return display
+		}
+		bucket.Detail = formatUsageAmount(*extra.UsedCredits) + "/" + formatUsageAmount(*extra.MonthlyLimit)
+		bucket.DetailHover = formatUsageHoverAmount(*extra.UsedCredits) + "/" + formatUsageHoverAmount(*extra.MonthlyLimit)
+		buckets = append(buckets, bucket)
 	}
 
 	if len(buckets) == 0 {
