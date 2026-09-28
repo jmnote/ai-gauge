@@ -28,11 +28,10 @@ Listings:
         - Global hotkey toggle to show and hide the window
         - Optional Windows startup with the window shown or in the system tray
         - Independent warning and critical thresholds in 5% steps or disabled
-      ReleaseNotes: Provider refresh intervals now support a 30-second option in
-        Settings for faster quota updates. Background Antigravity checks suppress
-        momentary console window flashes during CLI queries. Codex diagnostics
-        now report clearer details when rate-limit data is missing or out of
-        range.
+      ReleaseNotes: Codex and Claude cards now display monthly usage limits
+        alongside short-term rate limits, showing remaining and limit amounts
+        with compact formatting. Unabridged usage amounts are available in the
+        provider status panel.
 
 NotesForCertification: |
   AI Gauge is a Windows tray widget for Codex, Claude Code, GitHub Copilot, and
@@ -49,7 +48,7 @@ NotesForCertification: |
   1. Launch on a clean system and confirm setup guidance appears without errors.
   2. In Settings, test light/dark/system themes, the optional global hotkey (off by default), tray restore, and Always on top. Confirm thresholds offer Disabled or 5%-100% in 5% steps.
   3. Add Codex, Claude Code, or GitHub Copilot and use Connect for browser or device-flow sign-in. Claude's manual flow may require CODE#STATE. If a local CLI session exists, verify Import for Codex or Claude. For Antigravity, use the installed agy CLI. When two accounts of the same supported provider are present, confirm their account details distinguish the cards.
-  4. Open a provider's status dot to inspect the status card, fetch-failure count, reset credits when available, and the Refresh action. Reopen Settings, remove the connected provider, and confirm its AI Gauge credential and card are removed.
+  4. Open a provider's status dot to inspect the status card, fetch-failure count, reset credits and usage amounts when available, and the Refresh action. Reopen Settings, remove the connected provider, and confirm its AI Gauge credential and card are removed.
   5. Confirm Start with Windows defaults to Off. Test Show window and Start in tray across sign-in, and confirm a manual Start-menu launch still shows the window. Disable the app in Windows Settings or Task Manager and verify enabling it reports the block and remains Off.
 
   On a clean install, no provider network or CLI checks run until a provider is connected or explicitly checked. Connected providers refresh automatically while the app is running, including after sign-in when startup is enabled. Antigravity checks use the locally installed agy CLI.
