@@ -23,7 +23,7 @@ func TestCodexCapturedUsage(t *testing.T) {
 		remaining           float64
 	}{
 		{"usage_codex.json", "5h", "", 0},
-		{"usage_codex.monthly.json", "7d", "963.2/1000", 96},
+		{"usage_codex.monthly.json", "7d", "963/1000", 96},
 	} {
 		t.Run(tc.file, func(t *testing.T) {
 			usage := connectedCodex(t, capturedUsageFixture(t, tc.file))
@@ -64,7 +64,7 @@ func TestCodexIndividualLimitValidation(t *testing.T) {
 		valid          bool
 		detail         string
 	}{
-		{"valid", `"individual_limit": {`, `"individual_limit": {`, true, "963.2/1000"},
+		{"valid", `"individual_limit": {`, `"individual_limit": {`, true, "963/1000"},
 		{"invalid amount", `"used": "36.79748725891113"`, `"used": "NaN"`, false, ""},
 		{"negative limit", `"limit": "1000"`, `"limit": "-1"`, false, ""},
 		{"missing amount", `"used": "36.79748725891113"`, `"used": null`, false, ""},

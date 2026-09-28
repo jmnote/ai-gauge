@@ -9,7 +9,7 @@ func formatUsageAmount(value float64) string {
 	if value >= 10000 {
 		return strconv.FormatFloat(value/1000, 'f', 0, 64) + "k"
 	}
-	return formatFullUsageAmount(value)
+	return strconv.FormatFloat(value, 'f', 0, 64)
 }
 
 func formatFullUsageAmount(value float64) string {
