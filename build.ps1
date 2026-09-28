@@ -45,12 +45,12 @@ switch ($Task) {
     "kill"  {
         # The app enforces a single running instance, so a leftover one from
         # a previous run/build silently blocks a new one from starting.
-        $processes = @(Get-Process -Name "aigauge" -ErrorAction SilentlyContinue)
+        $processes = @(Get-Process -Name "ai-gauge", "aigauge" -ErrorAction SilentlyContinue)
         if ($processes.Count -gt 0) {
             $processes | Stop-Process -Force
-            Write-Output ("Killed {0} aigauge.exe process(es)" -f $processes.Count)
+            Write-Output ("Killed {0} ai-gauge process(es)" -f $processes.Count)
         } else {
-            Write-Output "No running aigauge.exe process found"
+            Write-Output "No running ai-gauge process found"
         }
     }
     "test" {
@@ -82,7 +82,7 @@ switch ($Task) {
         if (-not (Test-Path -LiteralPath $binDir)) {
             New-Item -ItemType Directory -Force -Path $binDir | Out-Null
         }
-        $outputExe = Join-Path $binDir "aigauge.exe"
+        $outputExe = Join-Path $binDir "ai-gauge.exe"
         $ldflags = "-H=windowsgui -X github.com/jmnote/ai-gauge/internal/app.AppVersion=$Version"
         go build -ldflags $ldflags -o $outputExe .
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
@@ -143,9 +143,11 @@ switch ($Task) {
         if (-not $distPath.StartsWith($expectedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
             throw "Refusing to clean dist outside the repository: $distPath"
         }
-        $rootExe = Join-Path $PSScriptRoot "aigauge.exe"
-        if (Test-Path -LiteralPath $rootExe) {
-            Remove-Item -LiteralPath $rootExe -Force
+        foreach ($exe in @("ai-gauge.exe", "aigauge.exe")) {
+            $rootExe = Join-Path $PSScriptRoot $exe
+            if (Test-Path -LiteralPath $rootExe) {
+                Remove-Item -LiteralPath $rootExe -Force
+            }
         }
         $rootSyso = Join-Path $PSScriptRoot "rsrc_windows_amd64.syso"
         if (Test-Path -LiteralPath $rootSyso) {

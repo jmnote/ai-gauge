@@ -39,7 +39,7 @@ These credentials are configured locally via `msstore reconfigure` or loaded fro
 Store submission overrides and certification test instructions are maintained in:
 - [`submission-overrides.yaml`](submission-overrides.yaml): Overrides applied to the active draft submission during the release workflow.
 - [`submission-snapshot.yaml`](submission-snapshot.yaml): Reference export snapshot demonstrating the full Partner Center submission schema.
-- [`submission-snapshot.md`](submission-snapshot.md): Human-readable specification and listing overview.
+- [`submission-reference.md`](submission-reference.md): Human-readable specification and listing overview.
 
 ### Release Submission Workflow (Draft & Override Merge)
 
@@ -94,7 +94,7 @@ Use `hack/msstore/submission.mjs` or `build.ps1` tasks to inspect and validate s
 - **Restricted Capability (`runFullTrust`)**:
   AI Gauge requires `runFullTrust` because it runs as a native Win32/Wails desktop application, provides a system tray UI, and invokes local CLI tools (`agy`) to retrieve quota data.
 - **Optional Windows startup**:
-  The `desktop:StartupTask` extension `AIGaugeStartup` launches `aigauge.exe` and is disabled by default.
+  The `desktop:StartupTask` extension `AIGaugeStartup` launches `ai-gauge.exe` and is disabled by default.
   It uses the same executable as normal launches. The app distinguishes startup activation before
   applying **Show window** or **Start in tray**; a manual Start menu launch shows the window.
   Windows Settings or Task Manager can disable the task. The app reports a user or policy block

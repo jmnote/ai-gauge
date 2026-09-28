@@ -10,8 +10,8 @@ param(
 $ErrorActionPreference = "Stop"
 $repo = Split-Path -Parent $PSScriptRoot
 if ([string]::IsNullOrWhiteSpace($Executable)) {
-    $binExe = Join-Path $repo "dist\bin\aigauge.exe"
-    $rootExe = Join-Path $repo "aigauge.exe"
+    $binExe = Join-Path $repo "dist\bin\ai-gauge.exe"
+    $rootExe = Join-Path $repo "ai-gauge.exe"
     $Executable = if (Test-Path -LiteralPath $binExe -PathType Leaf) { $binExe } else { $rootExe }
 }
 if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $repo "docs\screenshots\aigauge-native-$Theme.png" }
@@ -124,7 +124,7 @@ try {
 
     if ($handle -eq 0) { throw "AI Gauge window was not found within $WaitSeconds seconds." }
     Start-Sleep -Seconds $RenderWaitSeconds
-    $rawPath = Join-Path $env:TEMP ("aigauge-window-" + [System.IO.Path]::GetRandomFileName())
+    $rawPath = Join-Path $env:TEMP ("ai-gauge-window-" + [System.IO.Path]::GetRandomFileName())
     try {
         [WindowCapture]::Capture($handle, $rawPath)
         Add-RoundedShadow -SourcePath $rawPath -DestinationPath $OutputPath

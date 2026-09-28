@@ -256,10 +256,10 @@ func (a *App) OpenURL(u string) error {
 // instance, saves the token under the instance's id, and confirms
 // connectivity by returning the provider's diagnosis.
 func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
-	log.Printf("[aigauge] ConnectProvider(%q)", instanceID)
+	log.Printf("[ai-gauge] ConnectProvider(%q)", instanceID)
 	instance, err := a.resolveInstance(instanceID)
 	if err != nil {
-		log.Printf("[aigauge] ConnectProvider(%q): resolveInstance failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] ConnectProvider(%q): resolveInstance failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusTemporaryError,
 			Message: fmt.Sprintf("Authentication failed: %v", err),
@@ -276,7 +276,7 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 			return ready, nil
 		}
 		diag := diagnoseConnectedInstance(instance)
-		log.Printf("[aigauge] ConnectProvider(%q): checked agy CLI, status=%s", instanceID, diag.Status)
+		log.Printf("[ai-gauge] ConnectProvider(%q): checked agy CLI, status=%s", instanceID, diag.Status)
 		return diag, nil
 	}
 
@@ -288,20 +288,20 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 	if cfg, ok := auth.GetProviderConfig(instance.Type); ok && cfg.ManualCode {
 		authURL, err := auth.BeginManualAuthFlow(instance.Type, instance.ID)
 		if err != nil {
-			log.Printf("[aigauge] ConnectProvider(%q): BeginManualAuthFlow failed: %v", instanceID, err)
+			log.Printf("[ai-gauge] ConnectProvider(%q): BeginManualAuthFlow failed: %v", instanceID, err)
 			return providers.Diagnosis{
 				Status:  providers.StatusTemporaryError,
 				Message: fmt.Sprintf("Authentication failed: %v", err),
 			}, err
 		}
 		if err := a.launchBrowser(authURL); err != nil {
-			log.Printf("[aigauge] ConnectProvider(%q): launchBrowser failed: %v", instanceID, err)
+			log.Printf("[ai-gauge] ConnectProvider(%q): launchBrowser failed: %v", instanceID, err)
 			return providers.Diagnosis{
 				Status:  providers.StatusTemporaryError,
 				Message: fmt.Sprintf("Authentication failed: %v", err),
 			}, err
 		}
-		log.Printf("[aigauge] ConnectProvider(%q): opened manual-code login, awaiting SubmitAuthCode", instanceID)
+		log.Printf("[ai-gauge] ConnectProvider(%q): opened manual-code login, awaiting SubmitAuthCode", instanceID)
 		return providers.Diagnosis{
 			Status:  providers.StatusAwaitingCode,
 			Message: fmt.Sprintf("Approve access in your browser, then paste the code %s shows back here.", cfg.Name),
@@ -311,13 +311,13 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 	if cfg, ok := auth.GetProviderConfig(instance.Type); ok && cfg.DeviceFlow {
 		authURL, userCode, err := auth.BeginDeviceAuthFlow(instance.Type, instance.ID)
 		if err != nil {
-			log.Printf("[aigauge] ConnectProvider(%q): BeginDeviceAuthFlow failed: %v", instanceID, err)
+			log.Printf("[ai-gauge] ConnectProvider(%q): BeginDeviceAuthFlow failed: %v", instanceID, err)
 			return providers.Diagnosis{
 				Status:  providers.StatusTemporaryError,
 				Message: fmt.Sprintf("Authentication failed: %v", err),
 			}, err
 		}
-		log.Printf("[aigauge] ConnectProvider(%q): device flow initiated, user_code=%s, auth_url=%s", instanceID, userCode, authURL)
+		log.Printf("[ai-gauge] ConnectProvider(%q): device flow initiated, user_code=%s, auth_url=%s", instanceID, userCode, authURL)
 		return providers.Diagnosis{
 			Status:  providers.StatusAwaitingCode,
 			Message: fmt.Sprintf("Enter code %s at GitHub in your browser, then click Complete Connection.", userCode),
@@ -328,7 +328,7 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 
 	ctx := context.Background()
 	if _, err := auth.StartAuthFlow(ctx, instance.Type, instance.ID, a.launchBrowser); err != nil {
-		log.Printf("[aigauge] ConnectProvider(%q): StartAuthFlow failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] ConnectProvider(%q): StartAuthFlow failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusTemporaryError,
 			Message: fmt.Sprintf("Authentication failed: %v", err),
@@ -336,7 +336,7 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 	}
 
 	diag := diagnoseConnectedInstance(instance)
-	log.Printf("[aigauge] ConnectProvider(%q): connected, status=%s", instanceID, diag.Status)
+	log.Printf("[ai-gauge] ConnectProvider(%q): connected, status=%s", instanceID, diag.Status)
 	return diag, nil
 }
 
@@ -344,10 +344,10 @@ func (a *App) ConnectProvider(instanceID string) (providers.Diagnosis, error) {
 // ProviderConfig.ManualCode and ConnectProvider) using the code the user
 // copied from the provider's own redirect page and pasted back into AI Gauge.
 func (a *App) SubmitAuthCode(instanceID, code string) (providers.Diagnosis, error) {
-	log.Printf("[aigauge] SubmitAuthCode(%q)", instanceID)
+	log.Printf("[ai-gauge] SubmitAuthCode(%q)", instanceID)
 	instance, err := a.resolveInstance(instanceID)
 	if err != nil {
-		log.Printf("[aigauge] SubmitAuthCode(%q): resolveInstance failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] SubmitAuthCode(%q): resolveInstance failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusTemporaryError,
 			Message: fmt.Sprintf("Authentication failed: %v", err),
@@ -356,19 +356,19 @@ func (a *App) SubmitAuthCode(instanceID, code string) (providers.Diagnosis, erro
 
 	if cfg, ok := auth.GetProviderConfig(instance.Type); ok && cfg.DeviceFlow {
 		if _, err := auth.CompleteDeviceAuthFlow(instance.ID); err != nil {
-			log.Printf("[aigauge] SubmitAuthCode(%q): CompleteDeviceAuthFlow failed: %v", instanceID, err)
+			log.Printf("[ai-gauge] SubmitAuthCode(%q): CompleteDeviceAuthFlow failed: %v", instanceID, err)
 			return providers.Diagnosis{
 				Status:  providers.StatusAwaitingCode,
 				Message: err.Error(),
 			}, err
 		}
 		diag := diagnoseConnectedInstance(instance)
-		log.Printf("[aigauge] SubmitAuthCode(%q): connected via device flow, status=%s", instanceID, diag.Status)
+		log.Printf("[ai-gauge] SubmitAuthCode(%q): connected via device flow, status=%s", instanceID, diag.Status)
 		return diag, nil
 	}
 
 	if _, err := auth.CompleteManualAuthFlow(instance.ID, code); err != nil {
-		log.Printf("[aigauge] SubmitAuthCode(%q): CompleteManualAuthFlow failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] SubmitAuthCode(%q): CompleteManualAuthFlow failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusLoginRequired,
 			Message: fmt.Sprintf("Authentication failed: %v", err),
@@ -376,17 +376,17 @@ func (a *App) SubmitAuthCode(instanceID, code string) (providers.Diagnosis, erro
 	}
 
 	diag := diagnoseConnectedInstance(instance)
-	log.Printf("[aigauge] SubmitAuthCode(%q): connected, status=%s", instanceID, diag.Status)
+	log.Printf("[ai-gauge] SubmitAuthCode(%q): connected, status=%s", instanceID, diag.Status)
 	return diag, nil
 }
 
 // WaitForDeviceAuth blocks until the device authorization flow for instanceID
 // completes in the background (or user cancels/times out), returning the connected diagnosis.
 func (a *App) WaitForDeviceAuth(instanceID string) (providers.Diagnosis, error) {
-	log.Printf("[aigauge] WaitForDeviceAuth(%q)", instanceID)
+	log.Printf("[ai-gauge] WaitForDeviceAuth(%q)", instanceID)
 	instance, err := a.resolveInstance(instanceID)
 	if err != nil {
-		log.Printf("[aigauge] WaitForDeviceAuth(%q): resolveInstance failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] WaitForDeviceAuth(%q): resolveInstance failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusTemporaryError,
 			Message: fmt.Sprintf("Authentication failed: %v", err),
@@ -397,7 +397,7 @@ func (a *App) WaitForDeviceAuth(instanceID string) (providers.Diagnosis, error) 
 	defer cancel()
 
 	if _, err := auth.WaitForDeviceAuth(ctx, instance.ID); err != nil {
-		log.Printf("[aigauge] WaitForDeviceAuth(%q): WaitForDeviceAuth failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] WaitForDeviceAuth(%q): WaitForDeviceAuth failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusTemporaryError,
 			Message: err.Error(),
@@ -405,17 +405,17 @@ func (a *App) WaitForDeviceAuth(instanceID string) (providers.Diagnosis, error) 
 	}
 
 	diag := diagnoseConnectedInstance(instance)
-	log.Printf("[aigauge] WaitForDeviceAuth(%q): connected via device flow, status=%s", instanceID, diag.Status)
+	log.Printf("[ai-gauge] WaitForDeviceAuth(%q): connected via device flow, status=%s", instanceID, diag.Status)
 	return diag, nil
 }
 
 // ImportProvider explicitly imports existing local session credentials into
 // AI Gauge's secure store, under the given provider instance's id.
 func (a *App) ImportProvider(instanceID string) (providers.Diagnosis, error) {
-	log.Printf("[aigauge] ImportProvider(%q)", instanceID)
+	log.Printf("[ai-gauge] ImportProvider(%q)", instanceID)
 	instance, err := a.resolveInstance(instanceID)
 	if err != nil {
-		log.Printf("[aigauge] ImportProvider(%q): resolveInstance failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] ImportProvider(%q): resolveInstance failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusLoginRequired,
 			Message: fmt.Sprintf("Import failed: %v", err),
@@ -423,7 +423,7 @@ func (a *App) ImportProvider(instanceID string) (providers.Diagnosis, error) {
 	}
 
 	if _, err := auth.ImportCredentialsFile(instance.Type, instance.ID); err != nil {
-		log.Printf("[aigauge] ImportProvider(%q): ImportCredentialsFile failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] ImportProvider(%q): ImportCredentialsFile failed: %v", instanceID, err)
 		return providers.Diagnosis{
 			Status:  providers.StatusLoginRequired,
 			Message: fmt.Sprintf("Import failed: %v", err),
@@ -431,7 +431,7 @@ func (a *App) ImportProvider(instanceID string) (providers.Diagnosis, error) {
 	}
 
 	diag := diagnoseConnectedInstance(instance)
-	log.Printf("[aigauge] ImportProvider(%q): connected, status=%s", instanceID, diag.Status)
+	log.Printf("[ai-gauge] ImportProvider(%q): connected, status=%s", instanceID, diag.Status)
 	return diag, nil
 }
 
@@ -621,10 +621,10 @@ func (a *App) SetProviderOrder(instanceIDs []string) error {
 // existing instances of the same type, and persists it. Other windows are
 // notified only after CommitProviderInstance is called.
 func (a *App) AddProviderInstance(providerType string) (config.ProviderInstance, error) {
-	log.Printf("[aigauge] AddProviderInstance(%q)", providerType)
+	log.Printf("[ai-gauge] AddProviderInstance(%q)", providerType)
 	typeLabel, ok := providerTypeLabel(providerType)
 	if !ok {
-		log.Printf("[aigauge] AddProviderInstance(%q): unknown type", providerType)
+		log.Printf("[ai-gauge] AddProviderInstance(%q): unknown type", providerType)
 		return config.ProviderInstance{}, fmt.Errorf("unknown provider type %q", providerType)
 	}
 
@@ -667,10 +667,10 @@ func (a *App) AddProviderInstance(providerType string) (config.ProviderInstance,
 	instance := config.ProviderInstance{ID: id, Type: providerType, Label: label, RefreshInterval: config.DefaultRefreshInterval, Pending: true}
 	settings.Providers = append(settings.Providers, instance)
 	if err := config.Save(settings); err != nil {
-		log.Printf("[aigauge] AddProviderInstance(%q): config.Save failed: %v", providerType, err)
+		log.Printf("[ai-gauge] AddProviderInstance(%q): config.Save failed: %v", providerType, err)
 		return config.ProviderInstance{}, err
 	}
-	log.Printf("[aigauge] AddProviderInstance(%q): created id=%q label=%q, now %d provider(s)", providerType, instance.ID, instance.Label, len(settings.Providers))
+	log.Printf("[ai-gauge] AddProviderInstance(%q): created id=%q label=%q, now %d provider(s)", providerType, instance.ID, instance.Label, len(settings.Providers))
 	return instance, nil
 }
 
@@ -750,7 +750,7 @@ func (a *App) CleanupPendingProviderInstances() error {
 // cannot be undone from the settings screen - reusing the provider again
 // means adding a new instance and re-authenticating.
 func (a *App) RemoveProviderInstance(instanceID string) error {
-	log.Printf("[aigauge] RemoveProviderInstance(%q)", instanceID)
+	log.Printf("[ai-gauge] RemoveProviderInstance(%q)", instanceID)
 	// A Claude manual-code flow keeps its PKCE verifier/state keyed by the
 	// instance id until the code is submitted. Removing the instance must also
 	// discard that pending authentication state.
@@ -761,10 +761,10 @@ func (a *App) RemoveProviderInstance(instanceID string) error {
 	defer a.settingsMu.Unlock()
 	settings, err := a.loadSettingsLocked()
 	if err != nil {
-		log.Printf("[aigauge] RemoveProviderInstance(%q): loadSettings failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] RemoveProviderInstance(%q): loadSettings failed: %v", instanceID, err)
 		return err
 	}
-	log.Printf("[aigauge] RemoveProviderInstance(%q): %d provider(s) before removal: %+v", instanceID, len(settings.Providers), settings.Providers)
+	log.Printf("[ai-gauge] RemoveProviderInstance(%q): %d provider(s) before removal: %+v", instanceID, len(settings.Providers), settings.Providers)
 
 	kept := settings.Providers[:0]
 	found := false
@@ -776,21 +776,21 @@ func (a *App) RemoveProviderInstance(instanceID string) error {
 		kept = append(kept, p)
 	}
 	if !found {
-		log.Printf("[aigauge] RemoveProviderInstance(%q): not found among current providers", instanceID)
+		log.Printf("[ai-gauge] RemoveProviderInstance(%q): not found among current providers", instanceID)
 		return fmt.Errorf("unknown provider instance %q", instanceID)
 	}
 	settings.Providers = kept
 
 	if err := auth.DeleteToken(instanceID); err != nil {
-		log.Printf("[aigauge] RemoveProviderInstance(%q): DeleteToken failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] RemoveProviderInstance(%q): DeleteToken failed: %v", instanceID, err)
 		return err
 	}
 	if err := config.Save(settings); err != nil {
-		log.Printf("[aigauge] RemoveProviderInstance(%q): config.Save failed: %v", instanceID, err)
+		log.Printf("[ai-gauge] RemoveProviderInstance(%q): config.Save failed: %v", instanceID, err)
 		return err
 	}
 	a.notifySettingsChanged(settings)
-	log.Printf("[aigauge] RemoveProviderInstance(%q): removed, %d provider(s) remain", instanceID, len(settings.Providers))
+	log.Printf("[ai-gauge] RemoveProviderInstance(%q): removed, %d provider(s) remain", instanceID, len(settings.Providers))
 	return nil
 }
 
@@ -839,11 +839,11 @@ func (a *App) loadSettingsLocked() (config.Settings, error) {
 		return settings, nil
 	}
 	a.checkedStoredTokenMigration = true
-	log.Print("[aigauge] loadSettings: no providers yet, checking stored tokens to import (once per run)")
+	log.Print("[ai-gauge] loadSettings: no providers yet, checking stored tokens to import (once per run)")
 
 	tokens, err := auth.ListTokens()
 	if err != nil || len(tokens) == 0 {
-		log.Printf("[aigauge] loadSettings: no stored tokens found (err=%v)", err)
+		log.Printf("[ai-gauge] loadSettings: no stored tokens found (err=%v)", err)
 		return settings, nil
 	}
 
@@ -857,7 +857,7 @@ func (a *App) loadSettingsLocked() (config.Settings, error) {
 		})
 	}
 	if len(settings.Providers) > 0 {
-		log.Printf("[aigauge] loadSettings: imported stored tokens into %d instance(s): %+v", len(settings.Providers), settings.Providers)
+		log.Printf("[ai-gauge] loadSettings: imported stored tokens into %d instance(s): %+v", len(settings.Providers), settings.Providers)
 		if err := config.Save(settings); err != nil {
 			return settings, err
 		}
@@ -879,15 +879,15 @@ func (a *App) dropOrphanedPendingInstances(settings config.Settings) config.Sett
 			continue
 		}
 		removed++
-		log.Printf("[aigauge] loadSettings: dropping orphaned pending instance id=%q type=%q (left over from an interrupted add)", p.ID, p.Type)
+		log.Printf("[ai-gauge] loadSettings: dropping orphaned pending instance id=%q type=%q (left over from an interrupted add)", p.ID, p.Type)
 		if err := auth.DeleteToken(p.ID); err != nil {
-			log.Printf("[aigauge] loadSettings: DeleteToken(%q) during pending cleanup failed: %v", p.ID, err)
+			log.Printf("[ai-gauge] loadSettings: DeleteToken(%q) during pending cleanup failed: %v", p.ID, err)
 		}
 	}
 	settings.Providers = kept
 	if removed > 0 {
 		if err := config.Save(settings); err != nil {
-			log.Printf("[aigauge] loadSettings: failed to persist pending-instance cleanup: %v", err)
+			log.Printf("[ai-gauge] loadSettings: failed to persist pending-instance cleanup: %v", err)
 		}
 	}
 	return settings

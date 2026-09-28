@@ -1,6 +1,6 @@
 {
-  "name": "aigauge",
-  "outputfilename": "aigauge",
+  "name": "ai-gauge",
+  "outputfilename": "ai-gauge",
   "frontend": {
     "dir": "frontend"
   }
