@@ -43,10 +43,11 @@ Listings:
         - Global hotkey toggle to show and hide the window
         - Optional Windows startup with the window shown or in the system tray
         - Independent warning and critical thresholds in 5% steps or disabled
-      ReleaseNotes: Added GitHub Copilot support - connect via GitHub's OAuth device
-        flow and monitor your premium request quota alongside Codex, Claude, and
-        Antigravity. Long account labels in Settings now truncate with a hover
-        tooltip instead of overflowing action buttons.
+      ReleaseNotes: Provider refresh intervals now support a 30-second option in
+        Settings for faster quota updates. Background Antigravity checks
+        suppress momentary console window flashes during CLI queries. Codex
+        diagnostics now report clearer details when rate-limit data is missing
+        or out of range.
       Images:
         - FileName: aigauge-native-dark.png
           FileStatus: Uploaded
@@ -142,10 +143,10 @@ StatusDetails:
   CertificationReports: []
 FileUploadUrl: null
 ApplicationPackages:
-  - FileName: aigauge_0.11.0.0_x64.msix
+  - FileName: aigauge_0.12.0.0_x64.msix
     FileStatus: Uploaded
     Id: "2000000000098765432"
-    Version: 0.11.0.0
+    Version: 0.12.0.0
     Architecture: x64
     Languages:
       - en-US
