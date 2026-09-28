@@ -1,5 +1,5 @@
 {
-  "name": "aigauge-build-tools",
+  "name": "ai-gauge-build-tools",
   "private": true,
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",

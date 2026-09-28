@@ -87,7 +87,7 @@ export async function prepareWinres(version = "0.0.0") {
       "--icon", iconPath,
       "--product-name", "AI Gauge",
       "--file-description", "AI Gauge",
-      "--original-filename", "aigauge.exe",
+      "--original-filename", "ai-gauge.exe",
       "--product-version", numericVersion,
       "--file-version", numericVersion,
     ],
@@ -185,7 +185,7 @@ export async function packageMsix(options = {}) {
   const msixVersion = resolveVersion(appVersion);
   const releaseArtifact = Boolean(options.release);
 
-  const binExe = path.join(repoRoot, "dist", "bin", "aigauge.exe");
+  const binExe = path.join(repoRoot, "dist", "bin", "ai-gauge.exe");
 
   if (!fs.existsSync(binExe)) {
     throw new Error(`Build output not found: ${binExe}`);
@@ -203,7 +203,7 @@ export async function packageMsix(options = {}) {
   fs.mkdirSync(dist, { recursive: true });
 
   // Copy binary and license
-  fs.copyFileSync(binExe, path.join(staging, "aigauge.exe"));
+  fs.copyFileSync(binExe, path.join(staging, "ai-gauge.exe"));
   fs.copyFileSync(path.join(repoRoot, "LICENSE"), path.join(staging, "LICENSE"));
 
   // Process manifest. Check each attribute is actually present via a
@@ -229,7 +229,7 @@ export async function packageMsix(options = {}) {
   // Pack MSIX
   const makeAppxPath = findMakeAppx(options.makeappx);
   const artifactSuffix = releaseArtifact ? "" : "_local";
-  const output = path.join(dist, `aigauge_${msixVersion}_${arch}${artifactSuffix}.msix`);
+  const output = path.join(dist, `ai-gauge_${msixVersion}_${arch}${artifactSuffix}.msix`);
 
   if (fs.existsSync(output)) {
     fs.unlinkSync(output);

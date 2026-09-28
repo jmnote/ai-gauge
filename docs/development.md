@@ -3,7 +3,7 @@
 ## Repository layout
 
 ```text
-aigauge/
+ai-gauge/
 ├── frontend/          # Webview UI, icon, and sanitized preview fixture
 ├── docs/               # Documentation and listing screenshots
 ├── hack/               # Packaging, capture, and local preview scripts
@@ -35,7 +35,7 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; .\build.ps1 build
 ```
 
 The app enforces a single running instance, so a leftover one from a previous `run` or `build`
-silently blocks a new one from starting. `.\build.ps1 kill` stops any running `aigauge.exe`.
+silently blocks a new one from starting. `.\build.ps1 kill` stops any running `ai-gauge.exe`.
 
 Before submitting changes, run:
 
@@ -141,7 +141,7 @@ Settings offers **Off** (the default), **Show window**, and **Start in tray**. T
 Windows owns the startup task's enabled/disabled state; the settings screen reads it again after every
 change and when focused.
 
-The MSIX `desktop:StartupTask` named `AIGaugeStartup` launches `aigauge.exe` directly. Before creating
+The MSIX `desktop:StartupTask` named `AIGaugeStartup` launches `ai-gauge.exe` directly. Before creating
 any windows, the app reads `Windows.ApplicationModel.AppInstance.GetActivatedEventArgs()` and applies
 the tray preference only for `ActivationKind.StartupTask`. A normal Start menu launch shows the window.
 This uses the OS WinRT API on the package's minimum Windows version (10.0.17763.0); there is no separate

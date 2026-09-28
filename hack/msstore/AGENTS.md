@@ -11,6 +11,6 @@ These instructions apply to files under `hack/msstore/`.
 - When a provider is added or its authentication/data handling changes, also check
   [`docs/privacy-policy.md`](../../docs/privacy-policy.md) covers it - Store
   certification checks that the privacy policy matches what the app actually does.
-- `submission-snapshot.yaml` and `submission-snapshot.md` record the previous Store
+- `submission-snapshot.yaml` and `submission-reference.md` record the previous Store
   submission and are updated manually by the maintainer. Changes to them may be
   included in a PR, but agents must not edit either file.

@@ -29,7 +29,7 @@
 
   <Applications>
     <Application Id="App"
-                 Executable="aigauge.exe"
+                 Executable="ai-gauge.exe"
                  EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements AppListEntry="default"
                            DisplayName="AI Gauge"
@@ -39,7 +39,7 @@
                            BackgroundColor="#202124" />
       <Extensions>
         <desktop:Extension Category="windows.startupTask"
-                           Executable="aigauge.exe"
+                           Executable="ai-gauge.exe"
                            EntryPoint="Windows.FullTrustApplication">
           <desktop:StartupTask TaskId="AIGaugeStartup"
                                Enabled="false"

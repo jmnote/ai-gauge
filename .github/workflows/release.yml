@@ -36,9 +36,9 @@ jobs:
 
       - name: Install go-winres
         shell: pwsh
-        # Embeds the AI Gauge icon and file metadata into aigauge.exe (see
+        # Embeds the AI Gauge icon and file metadata into ai-gauge.exe (see
         # hack/package.mjs winres). The MSIX itself gets its icon
-        # from Package.appxmanifest regardless, but this same aigauge.exe is
+        # from Package.appxmanifest regardless, but this same ai-gauge.exe is
         # also uploaded directly as the portable release executable, and
         # without this resource step that one has no icon at all.
         run: go install github.com/tc-hib/go-winres@v0.3.3
@@ -68,7 +68,7 @@ jobs:
       - name: Copy portable executable
         shell: pwsh
         run: |
-          # build.ps1's package task already built aigauge.exe under dist/bin/
+          # build.ps1's package task already built ai-gauge.exe under dist/bin/
           # to produce the MSIX above (hack/package.mjs builds/stages it, then
           # copies it into the MSIX staging directory) - this just also copies
           # it into dist/ under the MSIX's own name, so someone who doesn't
@@ -80,10 +80,10 @@ jobs:
             throw "No MSIX package was produced; cannot name the portable executable after it."
           }
           $exeName = [IO.Path]::GetFileNameWithoutExtension($msix.Name) + ".exe"
-          $sourceExe = if (Test-Path -LiteralPath (Join-Path dist\bin "aigauge.exe")) {
-            Join-Path dist\bin "aigauge.exe"
+          $sourceExe = if (Test-Path -LiteralPath (Join-Path dist\bin "ai-gauge.exe")) {
+            Join-Path dist\bin "ai-gauge.exe"
           } else {
-            "aigauge.exe"
+            "ai-gauge.exe"
           }
           Copy-Item -LiteralPath $sourceExe -Destination (Join-Path dist $exeName)
 
@@ -92,7 +92,7 @@ jobs:
         run: |
           # -Path (wildcard) rather than -LiteralPath: -Include is silently
           # ignored without either a wildcard path or -Recurse, which would
-          # pick up hack/package.mjs's own build-time copy of aigauge.exe
+          # pick up hack/package.mjs's own build-time copy of ai-gauge.exe
           # under dist\staging\<arch>\ - not part of the release - alongside
           # everything else in the tree. This form stays non-recursive and
           # matches dist\'s own contents only.

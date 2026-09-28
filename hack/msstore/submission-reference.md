@@ -1,7 +1,7 @@
 <!-- Reference documentation for submission-snapshot.yaml. Do not edit the export snapshot manually;
      update submission-overrides.yaml for release metadata changes. -->
 
-# AI Gauge — Microsoft Partner Center submission snapshot
+# AI Gauge — Microsoft Partner Center submission reference
 
 ## Product
 
@@ -26,10 +26,10 @@
 - **Category**: Utilities + tools
 - **Subcategory**: None selected
 - **Uses personal information?**: Yes, my product uses personal information
-- **Privacy policy URL**: https://github.com/jmnote/aigauge/blob/main/docs/privacy-policy.md
+- **Privacy policy URL**: https://github.com/jmnote/ai-gauge/blob/main/docs/privacy-policy.md
 - **Support info**:
-  - **Website**: https://github.com/jmnote/aigauge
-  - **Support contact info**: https://github.com/jmnote/aigauge/issues
+  - **Website**: https://github.com/jmnote/ai-gauge
+  - **Support contact info**: https://github.com/jmnote/ai-gauge/issues
   - **Phone number**: Not provided
   - **Address**: Not provided
 - **Display mode**: PC and HoloLens not selected
@@ -45,7 +45,7 @@
 ## Packages
 
 - **Device family availability**: Windows 10/11 Desktop
-- **Package**: `aigauge_<version>_x64.msix` (for example, `aigauge_0.6.2.0_x64.msix`)
+- **Package**: `ai-gauge_<version>_x64.msix` (for example, `ai-gauge_0.6.2.0_x64.msix`)
 - **Version**: Four-part MSIX version derived from the release tag (for example, `v0.6.2` → `0.6.2.0`)
 - **Architecture**: X64
 - **Device families**: Windows.Desktop min version 10.0.17763.0

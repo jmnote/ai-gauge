@@ -2,18 +2,18 @@
 
 `frontend/images/logo.svg` is the source logo. The checked-in `frontend/images/logo.png` is the raster asset used
 by Windows executable resources and MSIX package icons. Windows builds also generate an ignored
-`rsrc_windows_amd64.syso` file from `frontend/images/logo.png`. The resource embeds the AI Gauge icon and Windows file metadata into `aigauge.exe`. Install the
+`rsrc_windows_amd64.syso` file from `frontend/images/logo.png`. The resource embeds the AI Gauge icon and Windows file metadata into `ai-gauge.exe`. Install the
 resource generator once with `go install github.com/tc-hib/go-winres@v0.3.3` if it is not already
 available.
 The MSIX manifest supplies the Store icons on its own, so the PR-check workflows (`msix.yml`,
 `pull-request.yml`) skip this step for speed. The release workflow (`release.yml`) does not skip
-it: `aigauge.exe` is also uploaded to GitHub Releases as the portable executable, and without the
+it: `ai-gauge.exe` is also uploaded to GitHub Releases as the portable executable, and without the
 embedded resource that file has no icon at all in Explorer/the taskbar.
 
 `.\build.ps1 checks` also creates a local MSIX and verifies that its package name and staged
 manifest version match the requested version (local builds default to `0.0.0`). Local packages use
-an explicit suffix such as `dist/aigauge_0.2.4.0_x64_local.msix`; the release workflow alone
-produces the canonical `aigauge_0.2.4.0_x64.msix` asset. The versioned local package remains in
+an explicit suffix such as `dist/ai-gauge_0.2.4.0_x64_local.msix`; the release workflow alone
+produces the canonical `ai-gauge_0.2.4.0_x64.msix` asset. The versioned local package remains in
 `dist/` for inspection. Remove generated packaging output explicitly when it is no longer needed:
 
 ```powershell
@@ -44,7 +44,7 @@ git push origin v0.6.2
 ```
 
 The `Release` GitHub Actions workflow (`.github/workflows/release.yml`) builds the MSIX, attaches both
-the MSIX and the standalone portable executable (`aigauge_<version>_x64.exe`) plus `SHA256SUMS.txt` to
+the MSIX and the standalone portable executable (`ai-gauge_<version>_x64.exe`) plus `SHA256SUMS.txt` to
 the GitHub release, and publishes the package to the Microsoft Store.
 
 The portable `.exe` runs unsigned and needs no installation - unlike the MSIX, which either goes through
