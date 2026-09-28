@@ -3,6 +3,7 @@ package providers
 import (
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -69,17 +70,50 @@ func TestCodexIndividualLimitValidation(t *testing.T) {
 		{"negative limit", `"limit": "1000"`, `"limit": "-1"`, false, ""},
 		{"missing amount", `"used": "36.79748725891113"`, `"used": null`, false, ""},
 		{"invalid percentage", `"remaining_percent": 96`, `"remaining_percent": 101`, false, ""},
+		{"null reset", `"reset_after_seconds": 2105558`, `"reset_after_seconds": null`, false, ""},
+		{"null percentage", `"remaining_percent": 96`, `"remaining_percent": null`, false, ""},
+		{"missing limit", `"limit": "1000"`, `"limit": null`, false, ""},
+		{"infinite amount", `"used": "36.79748725891113"`, `"used": "Inf"`, false, ""},
 		{"invalid reset", `"reset_after_seconds": 2105558`, `"reset_after_seconds": -1`, false, ""},
 		{"zero limit", `"limit": "1000"`, `"limit": "0"`, true, "0/0"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			usage := connectedCodex(t, []byte(strings.Replace(fixture, tc.from, tc.to, 1)))
+			usage.FetchedAt = "2026-08-01T00:00:00Z"
+			baseline := usage
+			baseline.SpendControl.IndividualLimit = nil
+			expected := baseline.ToDisplay()
 			display := usage.ToDisplay()
-			if (display.Error == "") != tc.valid {
-				t.Fatalf("error = %q, valid = %v", display.Error, tc.valid)
+			if display.Status != StatusConnected || display.Error != "" || len(display.Groups) != 1 {
+				t.Fatalf("optional limit must not hide valid windows: %#v", display)
 			}
-			if tc.valid && display.Groups[0].Buckets[1].Detail != tc.detail {
-				t.Errorf("detail = %q", display.Groups[0].Buckets[1].Detail)
+			if tc.valid {
+				if len(display.Groups[0].Buckets) != 2 || display.Groups[0].Buckets[1].Detail != tc.detail {
+					t.Fatalf("buckets = %#v, want valid monthly limit", display.Groups[0].Buckets)
+				}
+			} else if !reflect.DeepEqual(display.Groups, expected.Groups) {
+				t.Fatalf("invalid optional limit changed valid windows: %#v", display.Groups)
+			}
+			// Also preserve both normal 5h/7d windows, including reset timestamps.
+			regular := connectedCodex(t, readFixture(t, "codex-usage.json"))
+			regular.FetchedAt = usage.FetchedAt
+			before := regular.ToDisplay()
+			regular.SpendControl.IndividualLimit = usage.SpendControl.IndividualLimit
+			if !tc.valid {
+				after := regular.ToDisplay()
+				if after.Status != StatusConnected || after.Error != "" || !reflect.DeepEqual(after.Groups, before.Groups) {
+					t.Fatalf("invalid optional limit changed 5h/7d windows: %#v", after)
+				}
+			}
+			usage.RateLimit.PrimaryWindow = nil
+			usage.RateLimit.SecondaryWindow = nil
+			monthlyOnly := usage.ToDisplay()
+			if tc.valid {
+				if monthlyOnly.Status != StatusConnected || monthlyOnly.Error != "" || len(monthlyOnly.Groups) != 1 || len(monthlyOnly.Groups[0].Buckets) != 1 {
+					t.Fatalf("valid monthly-only response = %#v", monthlyOnly)
+				}
+			} else if monthlyOnly.Error == "" || monthlyOnly.Reason != ReasonNoUsageData || len(monthlyOnly.Groups) != 0 {
+				t.Fatalf("invalid monthly-only response = %#v, want no usage data", monthlyOnly)
 			}
 		})
 	}

@@ -1,12 +1,15 @@
 package providers
 
 import (
+	"math"
 	"strconv"
 	"strings"
 )
 
 func formatUsageAmount(value float64) string {
-	if value >= 10000 {
+	// Choose the unit from the displayed integer, but round k directly from
+	// the original value to avoid double rounding (e.g. 10499.7 stays 10k).
+	if math.RoundToEven(value) >= 10000 {
 		return strconv.FormatFloat(value/1000, 'f', 0, 64) + "k"
 	}
 	return strconv.FormatFloat(value, 'f', 0, 64)

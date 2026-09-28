@@ -83,28 +83,13 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 		buckets = append(buckets, DisplayUsageBucket{Label: label, Remaining: 100 - *used, ResetTime: toResetTime(*reset)})
 	}
 
-	if limit := u.SpendControl.IndividualLimit; limit != nil {
-		used, usedErr := strconv.ParseFloat(limit.Used, 64)
-		total, totalErr := strconv.ParseFloat(limit.Limit, 64)
-		var err error
-		if usedErr != nil || totalErr != nil || math.IsNaN(used) || math.IsInf(used, 0) || math.IsNaN(total) || math.IsInf(total, 0) || used < 0 || total < 0 {
-			err = fmt.Errorf("spend_control.individual_limit.used and limit must be non-negative finite numbers")
-		} else if limit.RemainingPercent == nil || *limit.RemainingPercent < 0 || *limit.RemainingPercent > 100 || limit.ResetAfterSeconds == nil || *limit.ResetAfterSeconds < 0 {
-			err = fmt.Errorf("spend_control.individual_limit requires remaining_percent in 0-100 and reset_after_seconds >= 0")
-		}
-		if err != nil {
-			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
-			return display
-		}
-		detail, amounts := formatUsageDetails(used, math.Max(0, total-used), total)
-		buckets = append(buckets, DisplayUsageBucket{
-			Label: "mo", Detail: detail,
-			Amounts:   amounts,
-			Remaining: *limit.RemainingPercent, ResetTime: toResetTime(*limit.ResetAfterSeconds),
-		})
+	// Individual limits are optional; malformed values must not hide valid windows.
+	if bucket, ok := codexIndividualLimitBucket(u.SpendControl.IndividualLimit); ok {
+		bucket.ResetTime = toResetTime(*u.SpendControl.IndividualLimit.ResetAfterSeconds)
+		buckets = append(buckets, bucket)
 	}
 	if len(buckets) == 0 {
-		display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, fmt.Errorf("no usage limits available in response")))
+		display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonNoUsageData, fmt.Errorf("no usable usage limits available in response")))
 		return display
 	}
 
@@ -112,6 +97,27 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 	display.Groups = []DisplayUsageGroup{{Buckets: buckets}}
 	display.Status = StatusConnected
 	return display
+}
+
+func codexIndividualLimitBucket(limit *CodexIndividualLimit) (DisplayUsageBucket, bool) {
+	if limit == nil || limit.RemainingPercent == nil || limit.ResetAfterSeconds == nil || *limit.ResetAfterSeconds < 0 {
+		return DisplayUsageBucket{}, false
+	}
+	used, usedErr := strconv.ParseFloat(limit.Used, 64)
+	total, totalErr := strconv.ParseFloat(limit.Limit, 64)
+	if usedErr != nil || totalErr != nil {
+		return DisplayUsageBucket{}, false
+	}
+	for _, value := range []float64{used, total, *limit.RemainingPercent} {
+		if value < 0 || math.IsNaN(value) || math.IsInf(value, 0) {
+			return DisplayUsageBucket{}, false
+		}
+	}
+	if *limit.RemainingPercent > 100 {
+		return DisplayUsageBucket{}, false
+	}
+	detail, amounts := formatUsageDetails(used, math.Max(0, total-used), total)
+	return DisplayUsageBucket{Label: "mo", Detail: detail, Amounts: amounts, Remaining: *limit.RemainingPercent}, true
 }
 
 func GetCodexUsage(tokenKey string) CodexUsage {
