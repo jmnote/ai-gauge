@@ -131,3 +131,29 @@ func TestCodexIndividualLimitValidation(t *testing.T) {
 		t.Fatalf("individual limit only = %#v", display)
 	}
 }
+
+func TestCodexWindowDurationLabels(t *testing.T) {
+	for _, tc := range []struct {
+		seconds int
+		label   string
+	}{
+		{1800, "30m"},
+		{60, "1m"},
+		{5400, "90m"},
+		{18000, "5h"},
+		{604800, "7d"},
+		{90, "1m30s"},
+	} {
+		t.Run(tc.label, func(t *testing.T) {
+			usage := connectedCodex(t, readFixture(t, "codex-usage.json"))
+			usage.RateLimit.PrimaryWindow.LimitWindowSeconds = tc.seconds
+			display := usage.ToDisplay()
+			if display.Error != "" || len(display.Groups) != 1 || len(display.Groups[0].Buckets) != 2 {
+				t.Fatalf("display = %#v", display)
+			}
+			if got := display.Groups[0].Buckets[0].Label; got != tc.label {
+				t.Errorf("label for %d seconds = %q, want %q", tc.seconds, got, tc.label)
+			}
+		})
+	}
+}

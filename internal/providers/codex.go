@@ -76,6 +76,8 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 				label = fmt.Sprintf("%dd", seconds/86400)
 			case seconds%3600 == 0:
 				label = fmt.Sprintf("%dh", seconds/3600)
+			case seconds%60 == 0:
+				label = fmt.Sprintf("%dm", seconds/60)
 			default:
 				label = (time.Duration(seconds) * time.Second).String()
 			}
