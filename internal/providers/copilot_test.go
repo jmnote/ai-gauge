@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/jmnote/aigauge/internal/auth"
+	"github.com/jmnote/ai-gauge/internal/auth"
 )
 
 func TestParseCopilotUsage(t *testing.T) {

@@ -83,7 +83,7 @@ switch ($Task) {
             New-Item -ItemType Directory -Force -Path $binDir | Out-Null
         }
         $outputExe = Join-Path $binDir "aigauge.exe"
-        $ldflags = "-H=windowsgui -X github.com/jmnote/aigauge/internal/app.AppVersion=$Version"
+        $ldflags = "-H=windowsgui -X github.com/jmnote/ai-gauge/internal/app.AppVersion=$Version"
         go build -ldflags $ldflags -o $outputExe .
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }

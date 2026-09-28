@@ -30,4 +30,4 @@ off stops automatic launches; it does not disconnect providers or delete their c
 
 ## Contact
 
-For privacy questions, contact us at <https://github.com/jmnote/aigauge/issues>. Do not include passwords, access tokens, or other sensitive information in public issues.
+For privacy questions, contact us at <https://github.com/jmnote/ai-gauge/issues>. Do not include passwords, access tokens, or other sensitive information in public issues.

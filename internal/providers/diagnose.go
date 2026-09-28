@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmnote/aigauge/internal/auth"
+	"github.com/jmnote/ai-gauge/internal/auth"
 )
 
 // statusCommandTimeout bounds a local CLI status command. These commands read

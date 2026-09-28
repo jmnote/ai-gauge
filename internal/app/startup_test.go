@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/jmnote/aigauge/internal/config"
+	"github.com/jmnote/ai-gauge/internal/config"
 )
 
 type failingStartupStore struct{ config.Store }

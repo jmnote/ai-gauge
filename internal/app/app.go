@@ -10,9 +10,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jmnote/aigauge/internal/auth"
-	"github.com/jmnote/aigauge/internal/config"
-	"github.com/jmnote/aigauge/internal/providers"
+	"github.com/jmnote/ai-gauge/internal/auth"
+	"github.com/jmnote/ai-gauge/internal/config"
+	"github.com/jmnote/ai-gauge/internal/providers"
 )
 
 var AppVersion = "v0.0.0"

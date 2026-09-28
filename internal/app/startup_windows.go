@@ -10,7 +10,7 @@ import (
 	"unsafe"
 
 	"github.com/go-ole/go-ole"
-	"github.com/jmnote/aigauge/internal/config"
+	"github.com/jmnote/ai-gauge/internal/config"
 	"golang.org/x/sys/windows"
 )
 

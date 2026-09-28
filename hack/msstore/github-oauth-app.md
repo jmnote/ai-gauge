@@ -6,7 +6,7 @@ provider's device flow (see [internal/auth/types.go](../../internal/auth/types.g
 | Field | Value |
 |---|---|
 | Application name | `AI Gauge` |
-| Homepage URL | `https://github.com/jmnote/aigauge` |
+| Homepage URL | `https://github.com/jmnote/ai-gauge` |
 | Application description | Windows tray widget that shows your GitHub Copilot request quota and credit usage at a glance. Reads only your Copilot usage/quota data via the device flow — never stores your GitHub password and requests no repository access. |
 | Redirect URI | `http://127.0.0.1:1456/auth/callback` |
 | Allow wildcard matching | ❌ |

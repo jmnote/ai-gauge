@@ -1,4 +1,4 @@
-module github.com/jmnote/aigauge
+module github.com/jmnote/ai-gauge
 
 go 1.25.0
 
