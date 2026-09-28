@@ -29,9 +29,9 @@ Listings:
         - Optional Windows startup with the window shown or in the system tray
         - Independent warning and critical thresholds in 5% steps or disabled
       ReleaseNotes: Codex and Claude cards now display monthly usage limits
-        alongside short-term rate limits, showing remaining and limit amounts
-        with compact formatting. Unabridged usage amounts are available in the
-        provider status panel.
+        when available alongside short-term rate limits, showing remaining and
+        limit amounts with compact formatting. Unabridged usage amounts are
+        available in the provider status panel.
 
 NotesForCertification: |
   AI Gauge is a Windows tray widget for Codex, Claude Code, GitHub Copilot, and
