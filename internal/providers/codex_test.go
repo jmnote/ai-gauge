@@ -91,6 +91,9 @@ func TestCodexIndividualLimitValidation(t *testing.T) {
 				if len(display.Groups[0].Buckets) != 2 || display.Groups[0].Buckets[1].Detail != tc.detail {
 					t.Fatalf("buckets = %#v, want valid monthly limit", display.Groups[0].Buckets)
 				}
+				if tc.name == "zero limit" && display.Groups[0].Buckets[1].Remaining != 0 {
+					t.Errorf("zero limit remaining = %g, want 0", display.Groups[0].Buckets[1].Remaining)
+				}
 			} else if !reflect.DeepEqual(display.Groups, expected.Groups) {
 				t.Fatalf("invalid optional limit changed valid windows: %#v", display.Groups)
 			}

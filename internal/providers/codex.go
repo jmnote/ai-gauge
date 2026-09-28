@@ -116,8 +116,13 @@ func codexIndividualLimitBucket(limit *CodexIndividualLimit) (DisplayUsageBucket
 	if *limit.RemainingPercent > 100 {
 		return DisplayUsageBucket{}, false
 	}
+	remaining := *limit.RemainingPercent
+	// No allowance means no available usage, regardless of the API percentage.
+	if total == 0 {
+		remaining = 0
+	}
 	detail, amounts := formatUsageDetails(used, math.Max(0, total-used), total)
-	return DisplayUsageBucket{Label: "mo", Detail: detail, Amounts: amounts, Remaining: *limit.RemainingPercent}, true
+	return DisplayUsageBucket{Label: "mo", Detail: detail, Amounts: amounts, Remaining: remaining}, true
 }
 
 func GetCodexUsage(tokenKey string) CodexUsage {

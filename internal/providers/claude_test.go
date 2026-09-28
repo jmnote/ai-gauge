@@ -84,7 +84,8 @@ func TestClaudeExtraUsageScaleAndOverage(t *testing.T) {
 		{"unused", 2, 0, 2000, 0, "20/20", 100},
 		{"exhausted", 2, 2000, 2000, 100, "0/20", 0},
 		{"overage", 2, 2050, 2000, 102.5, "0/20", 0},
-		{"zero limit", 2, 0, 0, 0, "0/0", 100},
+		{"zero limit", 2, 0, 0, 0, "0/0", 0},
+		{"zero limit with prior usage", 2, 1221, 0, 61.05, "0/0", 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			usage := connectedClaude(t, fixture)

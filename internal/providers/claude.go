@@ -113,13 +113,18 @@ func claudeExtraUsageBucket(extra *claudeExtraUsage) (DisplayUsageBucket, bool) 
 			return DisplayUsageBucket{}, false
 		}
 	}
+	remaining := math.Max(0, 100-*extra.Utilization)
+	// No allowance means no available usage, regardless of API utilization.
+	if *extra.MonthlyLimit == 0 {
+		remaining = 0
+	}
 	// The response reports minor units; never assume cents when the scale is absent.
 	scale := math.Pow10(*extra.DecimalPlaces)
 	detail, amounts := formatUsageDetails(*extra.UsedCredits/scale, math.Max(0, *extra.MonthlyLimit-*extra.UsedCredits)/scale, *extra.MonthlyLimit/scale)
 	return DisplayUsageBucket{
 		Label: "mo", Detail: detail, Amounts: amounts,
 		// Overage is valid usage, but a remaining bar cannot go below zero.
-		Remaining: math.Max(0, 100-*extra.Utilization),
+		Remaining: remaining,
 	}, true
 }
 
