@@ -115,9 +115,9 @@ func claudeExtraUsageBucket(extra *claudeExtraUsage) (DisplayUsageBucket, bool) 
 	}
 	// The response reports minor units; never assume cents when the scale is absent.
 	scale := math.Pow10(*extra.DecimalPlaces)
-	detail, full := formatUsageDetails(math.Max(0, *extra.MonthlyLimit-*extra.UsedCredits)/scale, *extra.MonthlyLimit/scale)
+	detail, amounts := formatUsageDetails(*extra.UsedCredits/scale, math.Max(0, *extra.MonthlyLimit-*extra.UsedCredits)/scale, *extra.MonthlyLimit/scale)
 	return DisplayUsageBucket{
-		Label: "mo", Detail: detail, DetailFull: full,
+		Label: "mo", Detail: detail, Amounts: amounts,
 		// Overage is valid usage, but a remaining bar cannot go below zero.
 		Remaining: math.Max(0, 100-*extra.Utilization),
 	}, true

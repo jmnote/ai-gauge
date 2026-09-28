@@ -43,6 +43,7 @@ func (u CopilotUsage) ToDisplay() DisplayUsage {
 		bucket.ResetTime = u.QuotaResetDate
 		if snapshot.Entitlement > 0 {
 			bucket.Detail = fmt.Sprintf("%d/%d", int(snapshot.Remaining), int(snapshot.Entitlement))
+			_, bucket.Amounts = formatUsageDetails(max(0, snapshot.Entitlement-snapshot.Remaining), snapshot.Remaining, snapshot.Entitlement)
 		}
 	}
 

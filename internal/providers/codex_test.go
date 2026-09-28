@@ -43,8 +43,8 @@ func TestCodexCapturedUsage(t *testing.T) {
 				t.Errorf("detail = %q, want %q", buckets[1].Detail, tc.detail)
 			}
 			if tc.detail != "" {
-				if buckets[1].DetailFull != "963.2/1000" {
-					t.Errorf("full detail = %q, want remaining amount without abbreviation", buckets[1].DetailFull)
+				if buckets[1].Amounts == nil || *buckets[1].Amounts != (DisplayUsageAmounts{Used: "36.8", Limit: "1000", Remaining: "963.2"}) {
+					t.Errorf("amounts = %#v, want separate full values", buckets[1].Amounts)
 				}
 				wantReset := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC).Add(2105558 * time.Second).Format(time.RFC3339)
 				if buckets[1].Label != "mo" || buckets[1].Remaining != tc.remaining || buckets[1].ResetTime != wantReset {

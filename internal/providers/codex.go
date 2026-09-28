@@ -96,11 +96,11 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
 			return display
 		}
-		detail, full := formatUsageDetails(math.Max(0, total-used), total)
+		detail, amounts := formatUsageDetails(used, math.Max(0, total-used), total)
 		buckets = append(buckets, DisplayUsageBucket{
 			Label: "mo", Detail: detail,
-			DetailFull: full,
-			Remaining:  *limit.RemainingPercent, ResetTime: toResetTime(*limit.ResetAfterSeconds),
+			Amounts:   amounts,
+			Remaining: *limit.RemainingPercent, ResetTime: toResetTime(*limit.ResetAfterSeconds),
 		})
 	}
 	if len(buckets) == 0 {

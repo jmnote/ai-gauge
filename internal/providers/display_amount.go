@@ -17,7 +17,7 @@ func formatFullUsageAmount(value float64) string {
 }
 
 // formatUsageDetails provides remaining/limit amounts for the row and dot menu.
-func formatUsageDetails(remaining, limit float64) (detail, full string) {
+func formatUsageDetails(used, remaining, limit float64) (detail string, amounts *DisplayUsageAmounts) {
 	return formatUsageAmount(remaining) + "/" + formatUsageAmount(limit),
-		formatFullUsageAmount(remaining) + "/" + formatFullUsageAmount(limit)
+		&DisplayUsageAmounts{Used: formatFullUsageAmount(used), Limit: formatFullUsageAmount(limit), Remaining: formatFullUsageAmount(remaining)}
 }

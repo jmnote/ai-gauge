@@ -15,7 +15,7 @@ func TestClaudeExtraUsage(t *testing.T) {
 		t.Fatalf("monthly-only display = %#v", display)
 	}
 	bucket := display.Groups[0].Buckets[0]
-	if bucket.Label != "mo" || bucket.Detail != "7.79/20" || bucket.DetailFull != "7.79/20" || math.Abs(bucket.Remaining-38.95) > 1e-9 || bucket.ResetTime != "" {
+	if bucket.Label != "mo" || bucket.Detail != "7.79/20" || bucket.Amounts == nil || *bucket.Amounts != (DisplayUsageAmounts{Used: "12.21", Limit: "20", Remaining: "7.79"}) || math.Abs(bucket.Remaining-38.95) > 1e-9 || bucket.ResetTime != "" {
 		t.Fatalf("monthly bucket = %#v", bucket)
 	}
 	regular := connectedClaude(t, readFixture(t, "claude-usage.json"))

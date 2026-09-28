@@ -244,13 +244,13 @@ export function badgeClass(status) {
   return '';
 }
 
-// Dot-menu amounts use full remaining/limit values, with a fallback for providers
-// whose normal detail is already unabridged (such as Copilot).
+// Show each unabridged amount separately. Qualify labels when multiple limits exist.
 export function usageDetailRows(groups = []) {
-  return (groups || []).flatMap(group => (group.buckets || []).flatMap(bucket => {
-    const value = bucket.detailFull || bucket.detail;
-    if (!value) return [];
-    const name = [group.name, bucket.label].filter(Boolean).join(' ');
-    return [{ label: `${name} remaining`, value }];
+  const limits = (groups || []).flatMap(group => (group.buckets || []).flatMap(bucket => {
+    if (!bucket.amounts) return [];
+    return [{ name: [group.name, bucket.label].filter(Boolean).join(' '), amounts: bucket.amounts }];
   }));
+  return limits.flatMap(({ name, amounts }) => [
+    ['Used', amounts.used], ['Limit', amounts.limit], ['Remaining', amounts.remaining],
+  ].map(([label, value]) => ({ label: limits.length > 1 ? `${name} ${label}` : label, value })));
 }
