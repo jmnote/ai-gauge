@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jmnote/aigauge/internal/auth"
+	"github.com/jmnote/ai-gauge/internal/auth"
 )
 
 // fakeRunner replays a recorded command result and remembers what it was asked

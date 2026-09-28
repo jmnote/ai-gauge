@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/fs"
 
-	usageapp "github.com/jmnote/aigauge/internal/app"
-	"github.com/jmnote/aigauge/internal/config"
+	usageapp "github.com/jmnote/ai-gauge/internal/app"
+	"github.com/jmnote/ai-gauge/internal/config"
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
 )

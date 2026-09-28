@@ -22,7 +22,7 @@ if (globalThis.__AIGAUGE_LIVE__) {
 }
 
 const rpc = (method, ...args) =>
-  wails.Call.ByName(`github.com/jmnote/aigauge/internal/app.App.${method}`, ...args);
+  wails.Call.ByName(`github.com/jmnote/ai-gauge/internal/app.App.${method}`, ...args);
 
 // Pending instances belong to the settings window's in-progress add flow.
 // Keep them in the backend response so that flow can be committed or removed,
@@ -85,7 +85,7 @@ try {
   config = normalizeMainConfig(await rpc('GetSettings'));
 } catch (e) {
   console.warn('Failed to load settings:', e);
-    config = normalizeMainConfig({});
+  config = normalizeMainConfig({});
 }
 
 let settingsWriteQueue = Promise.resolve();
@@ -143,11 +143,11 @@ const formatTimeRemaining = (seconds, targetDate) => {
 // (internal/providers) carries a `fetchedAt`, set right before that fetch
 // went out. For a live fetch the two are milliseconds apart (network
 // latency, basically), so this changes nothing normal users would notice.
-  // It matters for the live-server fixture browser (hack/live-server.mjs), which
+// It matters for the live-server fixture browser (hack/live-server.mjs), which
 // serves whatever `.\build.ps1 fixtures-usage` last captured as-is, with no
 // correction - that can be arbitrarily old by the time it's viewed: without
 // anchoring to fetchedAt, an absolute reset time could drift into the past
-  // and render as already-elapsed.
+// and render as already-elapsed.
 function referenceNow(usage) {
   const fetchedAt = new Date(usage?.fetchedAt).getTime();
   return Number.isNaN(fetchedAt) ? Date.now() : fetchedAt;
@@ -807,7 +807,7 @@ function toggleAlwaysOnTop() {
   isAlwaysOnTop = !isAlwaysOnTop;
   updateAlwaysOnTopUI(isAlwaysOnTop);
   wails.Window.SetAlwaysOnTop(isAlwaysOnTop);
-  wails.Call.ByName('github.com/jmnote/aigauge/internal/app.App.SetAlwaysOnTop', isAlwaysOnTop).catch(() => { });
+  wails.Call.ByName('github.com/jmnote/ai-gauge/internal/app.App.SetAlwaysOnTop', isAlwaysOnTop).catch(() => { });
 }
 
 pinWindowBtn.addEventListener('click', toggleAlwaysOnTop);
@@ -995,7 +995,7 @@ function applyTheme(theme, persist = true) {
 
 let forcedTheme = '';
 try {
-  forcedTheme = await wails.Call.ByName('github.com/jmnote/aigauge/internal/app.App.GetThemeOverride');
+  forcedTheme = await wails.Call.ByName('github.com/jmnote/ai-gauge/internal/app.App.GetThemeOverride');
 } catch (error) {
   console.warn('Unable to read the theme override:', error);
 }
@@ -1136,7 +1136,7 @@ async function connectExistingInstance(id, diagnosis) {
 }
 
 document.getElementById('hide-window').addEventListener('click', () => {
-  wails.Call.ByName('github.com/jmnote/aigauge/internal/app.App.HideToTray').catch(() => wails.Window.Hide());
+  wails.Call.ByName('github.com/jmnote/ai-gauge/internal/app.App.HideToTray').catch(() => wails.Window.Hide());
 });
 
 let lastReportedHeight = 0;
@@ -1161,7 +1161,7 @@ function requestWindowResize() {
       lastReportedHeight = height;
       // The backend preserves the window's current user-selected width and
       // changes only its height to fit the reflowed content.
-      wails.Call.ByName('github.com/jmnote/aigauge/internal/app.App.SetContentHeight', height).catch(() => { });
+      wails.Call.ByName('github.com/jmnote/ai-gauge/internal/app.App.SetContentHeight', height).catch(() => { });
     }
   });
 }

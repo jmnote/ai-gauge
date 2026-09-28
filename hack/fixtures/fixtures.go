@@ -27,10 +27,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jmnote/aigauge/hack/fixtures/util"
-	"github.com/jmnote/aigauge/internal/auth"
-	"github.com/jmnote/aigauge/internal/config"
-	"github.com/jmnote/aigauge/internal/providers"
+	"github.com/jmnote/ai-gauge/hack/fixtures/util"
+	"github.com/jmnote/ai-gauge/internal/auth"
+	"github.com/jmnote/ai-gauge/internal/config"
+	"github.com/jmnote/ai-gauge/internal/providers"
 )
 
 func fatalf(format string, args ...any) {

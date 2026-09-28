@@ -1,6 +1,6 @@
 package app
 
-import "github.com/jmnote/aigauge/internal/config"
+import "github.com/jmnote/ai-gauge/internal/config"
 
 // Load the startup preference only for a confirmed startup activation. Manual
 // launches must show the window even when the sign-in preference is tray.

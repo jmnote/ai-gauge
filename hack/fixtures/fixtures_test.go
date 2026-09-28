@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/jmnote/aigauge/internal/providers"
+	"github.com/jmnote/ai-gauge/internal/providers"
 )
 
 func TestSaveCodexUsageSnapshot(t *testing.T) {

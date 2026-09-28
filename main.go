@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
-	usageapp "github.com/jmnote/aigauge/internal/app"
-	"github.com/jmnote/aigauge/internal/ui"
+	usageapp "github.com/jmnote/ai-gauge/internal/app"
+	"github.com/jmnote/ai-gauge/internal/ui"
 )
 
 //go:embed frontend

@@ -12,7 +12,7 @@ document.getElementById('close-settings').addEventListener('click', async () => 
 });
 
 function rpc(method, ...args) {
-  return wails.Call.ByName(`github.com/jmnote/aigauge/internal/app.App.${method}`, ...args);
+  return wails.Call.ByName(`github.com/jmnote/ai-gauge/internal/app.App.${method}`, ...args);
 }
 
 // The Wails-RPC method names for each provider *type*. A provider instance

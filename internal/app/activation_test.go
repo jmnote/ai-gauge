@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jmnote/aigauge/internal/config"
+	"github.com/jmnote/ai-gauge/internal/config"
 )
 
 func TestStartupActivationFixtures(t *testing.T) {
