@@ -13,5 +13,16 @@ func formatUsageAmount(value float64) string {
 }
 
 func formatUsageHoverAmount(value float64) string {
+	if value < 10000 {
+		return formatUsageAmount(value)
+	}
 	return strings.TrimSuffix(strconv.FormatFloat(value, 'f', 1, 64), ".0")
+}
+
+func formatUsageDetails(used, limit float64) (detail, hover string) {
+	detail = formatUsageAmount(used) + "/" + formatUsageAmount(limit)
+	if used >= 10000 || limit >= 10000 {
+		hover = formatUsageHoverAmount(used) + "/" + formatUsageHoverAmount(limit)
+	}
+	return detail, hover
 }

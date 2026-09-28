@@ -34,10 +34,11 @@ type claudeUsageWindow struct {
 }
 
 type claudeExtraUsage struct {
-	IsEnabled    bool     `json:"is_enabled"`
-	MonthlyLimit *float64 `json:"monthly_limit"`
-	UsedCredits  *float64 `json:"used_credits"`
-	Utilization  *float64 `json:"utilization"`
+	IsEnabled     bool     `json:"is_enabled"`
+	MonthlyLimit  *float64 `json:"monthly_limit"`
+	UsedCredits   *float64 `json:"used_credits"`
+	Utilization   *float64 `json:"utilization"`
+	DecimalPlaces *int     `json:"decimal_places"`
 }
 
 // claudeCredentials is the shape of the Claude CLI's own credentials file

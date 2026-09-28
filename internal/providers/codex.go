@@ -96,9 +96,10 @@ func (u CodexUsage) ToDisplay() DisplayUsage {
 			display.applyDiagnosis(usageUnreadableDiagnosis("Codex", ReasonUnsupportedResponse, err))
 			return display
 		}
+		detail, hover := formatUsageDetails(used, total)
 		buckets = append(buckets, DisplayUsageBucket{
-			Label: "mo", Detail: formatUsageAmount(used) + "/" + formatUsageAmount(total),
-			DetailHover: formatUsageHoverAmount(used) + "/" + formatUsageHoverAmount(total),
+			Label: "mo", Detail: detail,
+			DetailHover: hover,
 			Remaining:   *limit.RemainingPercent, ResetTime: toResetTime(*limit.ResetAfterSeconds),
 		})
 	}

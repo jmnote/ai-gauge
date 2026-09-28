@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -85,17 +86,8 @@ func (u ClaudeUsage) ToDisplay() DisplayUsage {
 		}
 	}
 
-	if extra := u.ExtraUsage; extra != nil && extra.IsEnabled {
-		bucket, err := displayBucket("mo", claudeUsageWindow{Utilization: extra.Utilization})
-		if err == nil && (extra.MonthlyLimit == nil || extra.UsedCredits == nil || *extra.MonthlyLimit < 0 || *extra.UsedCredits < 0) {
-			err = fmt.Errorf("extra_usage requires non-negative monthly_limit and used_credits")
-		}
-		if err != nil {
-			display.applyDiagnosis(usageUnreadableDiagnosis("Claude", ReasonUnsupportedResponse, err))
-			return display
-		}
-		bucket.Detail = formatUsageAmount(*extra.UsedCredits) + "/" + formatUsageAmount(*extra.MonthlyLimit)
-		bucket.DetailHover = formatUsageHoverAmount(*extra.UsedCredits) + "/" + formatUsageHoverAmount(*extra.MonthlyLimit)
+	// Extra usage is optional: unusable amounts must not hide valid windows.
+	if bucket, ok := claudeExtraUsageBucket(u.ExtraUsage); ok {
 		buckets = append(buckets, bucket)
 	}
 
@@ -110,6 +102,25 @@ func (u ClaudeUsage) ToDisplay() DisplayUsage {
 
 func GetClaudeUsage(tokenKey string) ClaudeUsage {
 	return getClaudeUsage(context.Background(), defaultDeps(), tokenKey, true)
+}
+
+func claudeExtraUsageBucket(extra *claudeExtraUsage) (DisplayUsageBucket, bool) {
+	if extra == nil || !extra.IsEnabled || extra.DecimalPlaces == nil || *extra.DecimalPlaces < 0 || *extra.DecimalPlaces > 308 {
+		return DisplayUsageBucket{}, false
+	}
+	for _, value := range []*float64{extra.UsedCredits, extra.MonthlyLimit, extra.Utilization} {
+		if value == nil || *value < 0 || math.IsNaN(*value) || math.IsInf(*value, 0) {
+			return DisplayUsageBucket{}, false
+		}
+	}
+	// The response reports minor units; never assume cents when the scale is absent.
+	scale := math.Pow10(*extra.DecimalPlaces)
+	detail, hover := formatUsageDetails(*extra.UsedCredits/scale, *extra.MonthlyLimit/scale)
+	return DisplayUsageBucket{
+		Label: "mo", Detail: detail, DetailHover: hover,
+		// Overage is valid usage, but a remaining bar cannot go below zero.
+		Remaining: math.Max(0, 100-*extra.Utilization),
+	}, true
 }
 
 // FetchClaudeRawUsage returns the unconverted usage response for the Claude

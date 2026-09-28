@@ -43,8 +43,8 @@ func TestCodexCapturedUsage(t *testing.T) {
 				t.Errorf("detail = %q, want %q", buckets[1].Detail, tc.detail)
 			}
 			if tc.detail != "" {
-				if buckets[1].DetailHover != "36.8/1000" {
-					t.Errorf("detail hover = %q, want amounts rounded to one decimal place", buckets[1].DetailHover)
+				if buckets[1].DetailHover != "" {
+					t.Errorf("detail hover = %q, want no hover for unabridged amounts", buckets[1].DetailHover)
 				}
 				wantReset := time.Date(2026, 8, 1, 0, 0, 0, 0, time.UTC).Add(2105558 * time.Second).Format(time.RFC3339)
 				if buckets[1].Label != "mo" || buckets[1].Remaining != tc.remaining || buckets[1].ResetTime != wantReset {
