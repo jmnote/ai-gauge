@@ -48,9 +48,9 @@ func TestCopilotToDisplay(t *testing.T) {
 		t.Fatalf("display.Groups count = %d, want 1", len(display.Groups))
 	}
 	buckets := display.Groups[0].Buckets
-	// First bucket should be labeled monthly with detail formatted with remaining / entitlement
-	if buckets[0].Label != "monthly" || buckets[0].Detail != "375/500" || buckets[0].Remaining != 75.0 {
-		t.Errorf("bucket[0] = %+v, want monthly with 375/500 and 75%%", buckets[0])
+	// First bucket should be labeled mo with detail formatted with remaining / entitlement
+	if buckets[0].Label != "mo" || buckets[0].Detail != "375/500" || buckets[0].Remaining != 75.0 {
+		t.Errorf("bucket[0] = %+v, want mo with 375/500 and 75%%", buckets[0])
 	}
 	if buckets[0].ResetTime != "2026-10-01T00:00:00Z" {
 		t.Errorf("bucket[0].ResetTime = %q, want %q", buckets[0].ResetTime, "2026-10-01T00:00:00Z")
@@ -79,8 +79,8 @@ func TestCopilotToDisplayFallsBackToZeroWithoutPremiumSnapshot(t *testing.T) {
 		t.Fatalf("display.Groups = %+v, want 1 group with 1 bucket", display.Groups)
 	}
 	bucket := display.Groups[0].Buckets[0]
-	if bucket.Label != "monthly" || bucket.Detail != "" || bucket.Remaining != 0 {
-		t.Errorf("bucket = %+v, want monthly at 0%% with no detail", bucket)
+	if bucket.Label != "mo" || bucket.Detail != "" || bucket.Remaining != 0 {
+		t.Errorf("bucket = %+v, want mo at 0%% with no detail", bucket)
 	}
 }
 

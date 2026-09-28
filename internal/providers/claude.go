@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -39,9 +40,7 @@ func displayBucket(label string, window claudeUsageWindow) (DisplayUsageBucket, 
 	}, nil
 }
 
-// ToDisplay validates each window (5h/7d required, the per-model weekly
-// windows optional and undocumented) and converts utilization into
-// remaining percentage.
+// ToDisplay converts reported windows and enabled extra usage into remaining percentages.
 func (u ClaudeUsage) ToDisplay() DisplayUsage {
 	displayName := strings.TrimSpace(u.AccountDisplayName)
 	display := DisplayUsage{Plan: u.Plan, User: displayName, DisplayName: displayName, FetchedAt: u.FetchedAt, DiagnosisFields: u.DiagnosisFields}
@@ -87,6 +86,11 @@ func (u ClaudeUsage) ToDisplay() DisplayUsage {
 		}
 	}
 
+	// Extra usage is optional: unusable amounts must not hide valid windows.
+	if bucket, ok := claudeExtraUsageBucket(u.ExtraUsage); ok {
+		buckets = append(buckets, bucket)
+	}
+
 	if len(buckets) == 0 {
 		display.applyDiagnosis(usageUnreadableDiagnosis("Claude", ReasonNoUsageData, errNoUsageWindows))
 		return display
@@ -98,6 +102,30 @@ func (u ClaudeUsage) ToDisplay() DisplayUsage {
 
 func GetClaudeUsage(tokenKey string) ClaudeUsage {
 	return getClaudeUsage(context.Background(), defaultDeps(), tokenKey, true)
+}
+
+func claudeExtraUsageBucket(extra *claudeExtraUsage) (DisplayUsageBucket, bool) {
+	if extra == nil || !extra.IsEnabled || extra.DecimalPlaces == nil || *extra.DecimalPlaces < 0 || *extra.DecimalPlaces > 308 {
+		return DisplayUsageBucket{}, false
+	}
+	for _, value := range []*float64{extra.UsedCredits, extra.MonthlyLimit, extra.Utilization} {
+		if value == nil || *value < 0 || math.IsNaN(*value) || math.IsInf(*value, 0) {
+			return DisplayUsageBucket{}, false
+		}
+	}
+	remaining := math.Max(0, 100-*extra.Utilization)
+	// No allowance means no available usage, regardless of API utilization.
+	if *extra.MonthlyLimit == 0 {
+		remaining = 0
+	}
+	// The response reports minor units; never assume cents when the scale is absent.
+	scale := math.Pow10(*extra.DecimalPlaces)
+	detail, amounts := formatUsageDetails(*extra.UsedCredits/scale, math.Max(0, *extra.MonthlyLimit-*extra.UsedCredits)/scale, *extra.MonthlyLimit/scale)
+	return DisplayUsageBucket{
+		Label: "mo", Detail: detail, Amounts: amounts,
+		// Overage is valid usage, but a remaining bar cannot go below zero.
+		Remaining: remaining,
+	}, true
 }
 
 // FetchClaudeRawUsage returns the unconverted usage response for the Claude

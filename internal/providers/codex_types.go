@@ -12,15 +12,12 @@ type CodexUsage struct {
 	PlanType  string `json:"plan_type"`
 	Email     string `json:"email"`
 	RateLimit struct {
-		PrimaryWindow struct {
-			UsedPercent       *float64 `json:"used_percent"`
-			ResetAfterSeconds *int     `json:"reset_after_seconds"`
-		} `json:"primary_window"`
-		SecondaryWindow struct {
-			UsedPercent       *float64 `json:"used_percent"`
-			ResetAfterSeconds *int     `json:"reset_after_seconds"`
-		} `json:"secondary_window"`
+		PrimaryWindow   *CodexUsageWindow `json:"primary_window"`
+		SecondaryWindow *CodexUsageWindow `json:"secondary_window"`
 	} `json:"rate_limit"`
+	SpendControl struct {
+		IndividualLimit *CodexIndividualLimit `json:"individual_limit"`
+	} `json:"spend_control"`
 	RateLimitResetCredits struct {
 		AvailableCount *int `json:"available_count"`
 	} `json:"rate_limit_reset_credits"`
@@ -33,6 +30,19 @@ type CodexUsage struct {
 	Raw json.RawMessage `json:"-"`
 
 	DiagnosisFields
+}
+
+type CodexUsageWindow struct {
+	UsedPercent        *float64 `json:"used_percent"`
+	ResetAfterSeconds  *int     `json:"reset_after_seconds"`
+	LimitWindowSeconds int      `json:"limit_window_seconds"`
+}
+
+type CodexIndividualLimit struct {
+	Used              string   `json:"used"`
+	Limit             string   `json:"limit"`
+	RemainingPercent  *float64 `json:"remaining_percent"`
+	ResetAfterSeconds *int     `json:"reset_after_seconds"`
 }
 
 // codexAuth is the shape of the Codex CLI's own credentials file

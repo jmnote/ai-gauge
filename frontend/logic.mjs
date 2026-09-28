@@ -243,3 +243,14 @@ export function badgeClass(status) {
   if (status === 'temporary_error' || status === 'usage_unavailable' || status === 'unsupported_cli') return 'is-blocked';
   return '';
 }
+
+// Show each unabridged amount separately. Qualify labels when multiple limits exist.
+export function usageDetailRows(groups = []) {
+  const limits = (groups || []).flatMap(group => (group.buckets || []).flatMap(bucket => {
+    if (!bucket.amounts) return [];
+    return [{ name: [group.name, bucket.label].filter(Boolean).join(' '), amounts: bucket.amounts }];
+  }));
+  return limits.flatMap(({ name, amounts }) => [
+    ['Used', amounts.used], ['Limit', amounts.limit], ['Remaining', amounts.remaining],
+  ].map(([label, value]) => ({ label: limits.length > 1 ? `${name} ${label}` : label, value })));
+}

@@ -3,6 +3,7 @@ import {
   shouldCountFailure, shouldScheduleRetry, isExpectedSetupState,
   shouldKeepStaleData, retryDelay, providerVisibilityAction,
   normalizeWindowWidth, providerTypeLabel, shouldShowProviderUser, DEFAULT_REFRESH_SECONDS,
+  usageDetailRows,
 } from '/logic.mjs';
 import { createDropdown } from '/ui/dropdown.mjs';
 
@@ -190,6 +191,7 @@ function ensureProviderState(id) {
       displayName: '',
       plan: '',
       resetCredits: null,
+      usageDetails: [],
     });
   }
   return providerState.get(id);
@@ -219,6 +221,7 @@ function updateStatus(id, dotId, statusCardId, status, failureCount, lastSuccess
     ...(displayName ? [createTooltipRow('Display name', displayName)] : []),
     ...(plan ? [createTooltipRow('Plan', plan)] : []),
     ...(Number.isFinite(resetCredits) ? [createTooltipRow('Reset credits', `${resetCredits}`)] : []),
+    ...providerState.get(id).usageDetails.map(({ label, value }) => createTooltipRow(label, value)),
     createTooltipRow('Fetch fails', `${failureCount}`),
     createTooltipRow('Last fetch', successValue),
     ...(lastError ? [createTooltipRow('Last error', lastError)] : []),
@@ -607,6 +610,7 @@ function renderNonUsageState(id, usage) {
     state.email = '';
     state.displayName = '';
     state.resetCredits = null;
+    state.usageDetails = [];
     updateProviderUser(id);
     updateResetCredits(id);
     document.getElementById(meta.groupsId).replaceChildren();
@@ -635,6 +639,7 @@ function renderUsage(id, usage) {
   showProviderError(meta.errorId, '');
   state.plan = usage.plan || '';
   state.resetCredits = Number.isFinite(usage.resetCredits) ? usage.resetCredits : null;
+  state.usageDetails = usageDetailRows(usage.groups);
   updateResetCredits(id);
   updateProviderStatus(id);
   container.replaceChildren();
@@ -686,10 +691,7 @@ function appendGroupElement(container, name) {
   return groupElement;
 }
 
-// Each row gets its own tooltip (a sibling of .inline-reset within .limit,
-// not a child of it - .inline-reset has overflow:hidden for text truncation,
-// which would clip a tooltip nested inside it) showing just that row's own
-// full reset date-time, e.g. "Jan 1 (Fri) 00:00".
+// Reset times expand on hover; full amounts are available in the dot menu.
 function renderBucketRow(container, label, detail, remaining, resetTime, nowMs) {
   const clamped = Math.max(0, Math.min(100, remaining));
   const limit = document.createElement('div');
@@ -1219,18 +1221,17 @@ document.addEventListener('keydown', event => {
   }
 });
 
-// .inline-reset elements swap their text content in place to the full date
-// on mouse hover, and revert back on mouse out.
+// Reset times show their full text on hover and revert on mouse out.
 document.addEventListener('mouseover', event => {
-  const reset = event.target.closest?.('.inline-reset');
-  if (reset && !reset.contains(event.relatedTarget) && reset.dataset.hoverText) {
-    reset.textContent = reset.dataset.hoverText;
+  const element = event.target.closest?.('[data-hover-text]');
+  if (element && !element.contains(event.relatedTarget)) {
+    element.textContent = element.dataset.hoverText;
   }
 });
 document.addEventListener('mouseout', event => {
-  const reset = event.target.closest?.('.inline-reset');
-  if (reset && !reset.contains(event.relatedTarget) && reset.dataset.defaultText) {
-    reset.textContent = reset.dataset.defaultText;
+  const element = event.target.closest?.('[data-hover-text]');
+  if (element && !element.contains(event.relatedTarget) && element.dataset.defaultText) {
+    element.textContent = element.dataset.defaultText;
   }
 });
 

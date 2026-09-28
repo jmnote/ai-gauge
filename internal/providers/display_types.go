@@ -30,8 +30,16 @@ type DisplayUsageGroup struct {
 // provider-specific bucket types this converts from. Detail carries optional
 // supplementary count text, such as "84/200" for Copilot.
 type DisplayUsageBucket struct {
-	Label     string  `json:"label"`
-	Detail    string  `json:"detail,omitempty"`
-	Remaining float64 `json:"remaining"`
-	ResetTime string  `json:"resetTime"`
+	Label     string               `json:"label"`
+	Detail    string               `json:"detail,omitempty"`
+	Amounts   *DisplayUsageAmounts `json:"amounts,omitempty"`
+	Remaining float64              `json:"remaining"`
+	ResetTime string               `json:"resetTime"`
+}
+
+// DisplayUsageAmounts contains unabridged values for the dot menu.
+type DisplayUsageAmounts struct {
+	Used      string `json:"used"`
+	Limit     string `json:"limit"`
+	Remaining string `json:"remaining"`
 }

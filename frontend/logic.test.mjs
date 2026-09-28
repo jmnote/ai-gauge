@@ -7,6 +7,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  usageDetailRows,
   DEFAULT_REFRESH_SECONDS,
   DEFAULT_WINDOW_WIDTH,
   MAX_REFRESH_SECONDS,
@@ -376,3 +377,28 @@ for (const fixture of thresholdFixtures) {
     assert.deepEqual(normalizeConfig(config).thresholds, fixture.expected);
   });
 }
+
+test('dot menu shows separate unabridged values and skips percentage-only windows', () => {
+  assert.deepEqual(usageDetailRows([{ name: '', buckets: [
+    { label: '5h', remaining: 50 },
+    { label: 'mo', detail: '21k/25k', amounts: { used: '3630.43', limit: '25000', remaining: '21369.57' } },
+  ] }]), [
+    { label: 'Used', value: '3630.43' },
+    { label: 'Limit', value: '25000' },
+    { label: 'Remaining', value: '21369.57' },
+  ]);
+  assert.deepEqual(usageDetailRows(), []);
+  assert.deepEqual(usageDetailRows(null), []);
+});
+
+test('dot menu qualifies separate amounts when multiple limits exist', () => {
+  const rows = usageDetailRows([{ name: 'Premium', buckets: [
+    { label: '5h', amounts: { used: '0', limit: '100', remaining: '100' } },
+    { label: 'mo', amounts: { used: '125', limit: '500', remaining: '375' } },
+  ] }]);
+  assert.deepEqual(rows.map(row => row.label), [
+    'Premium 5h Used', 'Premium 5h Limit', 'Premium 5h Remaining',
+    'Premium mo Used', 'Premium mo Limit', 'Premium mo Remaining',
+  ]);
+  assert.equal(rows[0].value, '0');
+});

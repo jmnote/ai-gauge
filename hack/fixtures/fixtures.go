@@ -117,7 +117,7 @@ func obfuscateCodexUsageResponse(raw []byte) ([]byte, error) {
 	if err := json.Unmarshal(raw, &obj); err != nil {
 		return nil, fmt.Errorf("response is not a JSON object: %w", err)
 	}
-	for _, field := range []string{"user_id", "email"} {
+	for _, field := range []string{"account_id", "user_id", "email"} {
 		if err := obfuscateField(obj, field, true); err != nil {
 			return nil, err
 		}
