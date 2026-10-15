@@ -7,7 +7,7 @@
 <p align="center">A lightweight Windows tray widget for monitoring OpenAI Codex, Claude Code, GitHub Copilot, and Google Antigravity usage.</p>
 
 <p align="center">
-  <a href="https://apps.microsoft.com/detail/9MT65KM56P99">
+  <a href="https://apps.microsoft.com/detail/9mt65km56p99">
     <img src="https://get.microsoft.com/images/en-us%20dark.svg" width="200" alt="Get AI Gauge from Microsoft Store">
   </a>
 </p>
