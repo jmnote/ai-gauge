@@ -205,6 +205,8 @@ test('refresh interval options format seconds and minutes correctly', () => {
   assert.equal(formatRefreshOption(180), '3m');
   assert.ok(PROVIDER_REFRESH_OPTIONS.includes(30));
   assert.ok(PROVIDER_REFRESH_OPTIONS.includes(120));
+  assert.equal(formatRefreshOption(1200), '20m');
+  assert.ok(PROVIDER_REFRESH_OPTIONS.includes(1200));
 });
 
 test('a provider instance needs a valid id and a recognized type', () => {
