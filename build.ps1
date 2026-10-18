@@ -1,5 +1,5 @@
 param(
-    [ValidateSet("run", "kill", "test", "logo", "build", "package", "checks", "clean", "live-server", "screenshot", "fixtures-usage", "fixtures-tokens", "submission-snapshot", "submission-validate")]
+    [ValidateSet("run", "kill", "test", "logo", "build", "package", "checks", "clean", "live-server", "screenshot", "fixtures-usage", "fixtures-tokens", "submission-snapshot", "submission-validate", "store-art")]
     [string]$Task = "build",
     [Alias("Provider", "Target")]
     [string]$Version = "",
@@ -64,6 +64,11 @@ switch ($Task) {
     "logo" {
         Ensure-HackNpm "@resvg/resvg-js"
         & node (Join-Path $PSScriptRoot "hack\package.mjs") logo
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    "store-art" {
+        Ensure-HackNpm "@resvg/resvg-js"
+        & node (Join-Path $PSScriptRoot "hack\package.mjs") store-art
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "build" {
