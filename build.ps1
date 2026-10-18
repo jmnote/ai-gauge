@@ -1,12 +1,11 @@
 param(
-    [ValidateSet("run", "kill", "test", "logo", "build", "package", "checks", "clean", "live-server", "screenshot", "screenshot-light", "screenshot-dark", "fixtures-usage", "fixtures-tokens", "submission-snapshot", "submission-validate")]
+    [ValidateSet("run", "kill", "test", "logo", "build", "package", "checks", "clean", "live-server", "screenshot", "fixtures-usage", "fixtures-tokens", "submission-snapshot", "submission-validate")]
     [string]$Task = "build",
     [Alias("Provider", "Target")]
     [string]$Version = "",
     [ValidateSet("x64", "x86", "arm64")]
     [string]$Architecture = "x64",
     [string]$MakeAppx = "",
-    [string]$ScreenshotPath = "",
     [switch]$SkipWindowsResources,
     [switch]$ReleaseArtifact
 )
@@ -205,27 +204,12 @@ switch ($Task) {
         exit $LASTEXITCODE
     }
     "screenshot" {
-        foreach ($screenshotTask in @("screenshot-light", "screenshot-dark")) {
-            & $PSCommandPath -Task $screenshotTask
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        }
-    }
-    "screenshot-light" {
         & $PSCommandPath -Task build -Version $Version
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        $screenshotScript = Join-Path $PSScriptRoot "hack\screenshot.ps1"
-        $arguments = @{ Theme = "light"; RenderWaitSeconds = 20 }
-        if (-not [string]::IsNullOrWhiteSpace($ScreenshotPath)) { $arguments.OutputPath = $ScreenshotPath }
-        & $screenshotScript @arguments
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    }
-    "screenshot-dark" {
-        & $PSCommandPath -Task build -Version $Version
-        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-        $screenshotScript = Join-Path $PSScriptRoot "hack\screenshot.ps1"
-        $arguments = @{ Theme = "dark"; RenderWaitSeconds = 20 }
-        if (-not [string]::IsNullOrWhiteSpace($ScreenshotPath)) { $arguments.OutputPath = $ScreenshotPath }
-        & $screenshotScript @arguments
+        # A child PowerShell keeps the script's Add-Type C# type out of this
+        # session, where a later run with changed source would fail with
+        # "type name already exists".
+        & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot "hack\screenshot.ps1")
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 }

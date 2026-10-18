@@ -1,10 +1,9 @@
 param(
     [string]$Executable = "",
-    [string]$OutputPath = "",
+    [string]$OutputDirectory = "",
     [int]$WaitSeconds = 15,
     [int]$RenderWaitSeconds = 20,
-    [ValidateSet("light", "dark", "system")]
-    [string]$Theme = "light"
+    [int]$ThemeSwitchWaitMilliseconds = 300
 )
 
 $ErrorActionPreference = "Stop"
@@ -14,12 +13,12 @@ if ([string]::IsNullOrWhiteSpace($Executable)) {
     $rootExe = Join-Path $repo "ai-gauge.exe"
     $Executable = if (Test-Path -LiteralPath $binExe -PathType Leaf) { $binExe } else { $rootExe }
 }
-if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $repo "docs\screenshots\aigauge-native-$Theme.png" }
+if ([string]::IsNullOrWhiteSpace($OutputDirectory)) { $OutputDirectory = Join-Path $repo "docs\screenshots" }
 if (-not (Test-Path -LiteralPath $Executable -PathType Leaf)) { throw "Executable not found: $Executable" }
 
-$outputDirectory = Split-Path -Parent $OutputPath
-New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 
+Add-Type -AssemblyName UIAutomationClient, UIAutomationTypes
 Add-Type -AssemblyName System.Drawing
 Add-Type -ReferencedAssemblies System.Drawing @'
 using System;
@@ -39,6 +38,37 @@ public static class WindowCapture {
 
     [DllImport("user32.dll")]
     public static extern bool SetProcessDPIAware();
+
+    private delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern bool EnumWindows(EnumWindowsProc callback, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+
+    [DllImport("user32.dll")]
+    private static extern bool IsWindowVisible(IntPtr hWnd);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    private static extern int GetWindowText(IntPtr hWnd, System.Text.StringBuilder text, int maxCount);
+
+    // FindVisible returns the visible top-level window of processId titled
+    // title, or IntPtr.Zero.
+    public static IntPtr FindVisible(int processId, string title) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows((hWnd, _) => {
+            uint pid;
+            GetWindowThreadProcessId(hWnd, out pid);
+            if (pid != processId || !IsWindowVisible(hWnd)) return true;
+            var text = new System.Text.StringBuilder(256);
+            GetWindowText(hWnd, text, text.Capacity);
+            if (text.ToString() != title) return true;
+            found = hWnd;
+            return false;
+        }, IntPtr.Zero);
+        return found;
+    }
 
     public static void Capture(IntPtr handle, string path) {
         SetProcessDPIAware();
@@ -112,26 +142,62 @@ function Add-RoundedShadow {
     } finally { $source.Dispose() }
 }
 
-$processArgs = @("--theme=$Theme")
-$process = Start-Process -FilePath $Executable -ArgumentList $processArgs -PassThru
-try {
+function Wait-Window([System.Diagnostics.Process]$Process, [string]$Title) {
     $deadline = (Get-Date).AddSeconds($WaitSeconds)
     do {
         Start-Sleep -Milliseconds 250
-        $process.Refresh()
-        $handle = $process.MainWindowHandle
+        $handle = [WindowCapture]::FindVisible($Process.Id, $Title)
     } while ($handle -eq 0 -and (Get-Date) -lt $deadline)
+    if ($handle -eq 0) { throw "Window '$Title' was not found within $WaitSeconds seconds." }
+    return $handle
+}
 
-    if ($handle -eq 0) { throw "AI Gauge window was not found within $WaitSeconds seconds." }
-    Start-Sleep -Seconds $RenderWaitSeconds
+function Save-WindowCapture([IntPtr]$Handle, [string]$Name) {
+    $outputPath = Join-Path $OutputDirectory $Name
     $rawPath = Join-Path $env:TEMP ("ai-gauge-window-" + [System.IO.Path]::GetRandomFileName())
     try {
-        [WindowCapture]::Capture($handle, $rawPath)
-        Add-RoundedShadow -SourcePath $rawPath -DestinationPath $OutputPath
+        [WindowCapture]::Capture($Handle, $rawPath)
+        Add-RoundedShadow -SourcePath $rawPath -DestinationPath $outputPath
     } finally {
         if (Test-Path -LiteralPath $rawPath) { [System.IO.File]::Delete($rawPath) }
     }
-    Write-Output "Created: $OutputPath"
+    Write-Output "Created: $outputPath"
+}
+
+# Invoke-ThemeButton presses a Settings theme button (aria-label Light/Dark),
+# which also saves that theme as the user's preference. aria-pressed makes it
+# a UIA toggle button, so it exposes TogglePattern rather than InvokePattern.
+# Toggling also focuses the button, so focus then moves to the page itself to
+# keep the button's focus ring out of the capture.
+function Invoke-ThemeButton([IntPtr]$SettingsHandle, [string]$Name) {
+    $root = [System.Windows.Automation.AutomationElement]::FromHandle($SettingsHandle)
+    $condition = New-Object System.Windows.Automation.AndCondition(
+        (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Button)),
+        (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty, $Name))
+    )
+    $deadline = (Get-Date).AddSeconds($WaitSeconds)
+    do {
+        $button = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants, $condition)
+        if ($null -eq $button) { Start-Sleep -Milliseconds 250 }
+    } while ($null -eq $button -and (Get-Date) -lt $deadline)
+    if ($null -eq $button) { throw "Settings '$Name' theme button was not found within $WaitSeconds seconds." }
+    $button.GetCurrentPattern([System.Windows.Automation.TogglePattern]::Pattern).Toggle()
+    $document = $root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,
+        (New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::ControlTypeProperty, [System.Windows.Automation.ControlType]::Document)))
+    if ($null -ne $document) { $document.SetFocus() }
+}
+
+$process = Start-Process -FilePath $Executable -ArgumentList @("--settings") -PassThru
+try {
+    $mainHandle = Wait-Window $process "AI Gauge"
+    $settingsHandle = Wait-Window $process "AI Gauge - Settings"
+    Start-Sleep -Seconds $RenderWaitSeconds
+    foreach ($theme in @("light", "dark")) {
+        Invoke-ThemeButton $settingsHandle ((Get-Culture).TextInfo.ToTitleCase($theme))
+        Start-Sleep -Milliseconds $ThemeSwitchWaitMilliseconds
+        Save-WindowCapture $mainHandle "aigauge-main-$theme.png"
+        Save-WindowCapture $settingsHandle "aigauge-settings-$theme.png"
+    }
 } finally {
     if (-not $process.HasExited) { Stop-Process -Id $process.Id -Force }
 }

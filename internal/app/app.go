@@ -16,8 +16,6 @@ import (
 	"github.com/jmnote/ai-gauge/internal/version"
 )
 
-var ThemeOverride string
-
 // providerTypeInfo pairs a provider type id with its human-readable label and
 // its usage-diagnosis call, so every place that needs "what provider types
 // exist" (AddProviderInstance's validation, migrated-legacy auto-labeling,
@@ -136,8 +134,6 @@ func (a *App) SetWindowWidth(width int) {
 }
 
 func (a *App) GetVersion() string { return version.Version }
-
-func (a *App) GetThemeOverride() string { return ThemeOverride }
 
 func (a *App) SetAlwaysOnTop(alwaysOnTop bool) {
 	if a.onSetAlwaysOnTop != nil {

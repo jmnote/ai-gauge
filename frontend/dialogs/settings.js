@@ -490,14 +490,7 @@ systemTheme.addEventListener('change', () => {
   if (document.documentElement.dataset.theme === 'system') applyTheme('system', false);
 });
 
-let forcedTheme = '';
-try {
-  forcedTheme = await rpc('GetThemeOverride');
-} catch (error) {
-  console.warn('Unable to read the theme override:', error);
-}
-const activeTheme = forcedTheme || config.theme || 'system';
-applyTheme(VALID_THEMES.has(activeTheme) ? activeTheme : 'system', !forcedTheme);
+applyTheme(VALID_THEMES.has(config.theme) ? config.theme : 'system');
 
 // ---------------------------------------------------------------------------
 // Thresholds

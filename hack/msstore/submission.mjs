@@ -164,8 +164,9 @@ async function submissionYaml() {
   }
 
   // Mask sensitive ephemeral SAS token and pin submission-churn fields (Id,
-  // Status, FriendlyName, ApplicationPackages Id) that vary per fetch but carry
-  // no useful meaning in the committed snapshot, unless --raw is specified.
+  // Status, FriendlyName, ApplicationPackages Id/Version and the version in
+  // its FileName) that vary per fetch or release but carry no useful meaning
+  // in the committed snapshot, unless --raw is specified.
   if (!process.argv.includes('--raw') && data) {
     if (data.FileUploadUrl) {
       data.FileUploadUrl = '__REDACTED__';
@@ -183,6 +184,12 @@ async function submissionYaml() {
       for (const pkg of data.ApplicationPackages) {
         if (pkg && pkg.Id) {
           pkg.Id = '2000000000098765432';
+        }
+        if (pkg && pkg.Version) {
+          pkg.Version = '0.0.0.0';
+        }
+        if (pkg && typeof pkg.FileName === 'string') {
+          pkg.FileName = pkg.FileName.replace(/\d+\.\d+\.\d+\.\d+/, '0.0.0.0');
         }
       }
     }

@@ -5,7 +5,6 @@ import (
 	"io/fs"
 	"log"
 	"os"
-	"strings"
 
 	usageapp "github.com/jmnote/ai-gauge/internal/app"
 	"github.com/jmnote/ai-gauge/internal/ui"
@@ -20,16 +19,14 @@ var appIcon []byte
 func main() {
 	startHidden := false
 	explicitHidden := false
+	openSettings := false
 	for _, arg := range os.Args[1:] {
-		if strings.HasPrefix(arg, "--theme=") {
-			theme := strings.TrimPrefix(arg, "--theme=")
-			if theme == "light" || theme == "dark" || theme == "system" {
-				usageapp.ThemeOverride = theme
-			}
-		}
 		if arg == "--hidden" || arg == "--tray" || arg == "--minimized" {
 			startHidden = true
 			explicitHidden = true
+		}
+		if arg == "--settings" {
+			openSettings = true
 		}
 	}
 	if !explicitHidden {
@@ -44,7 +41,7 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize embedded frontend assets: ", err)
 	}
-	if err := ui.Run(frontendAssets, appIcon, startHidden); err != nil {
+	if err := ui.Run(frontendAssets, appIcon, startHidden, openSettings); err != nil {
 		log.Fatal(err)
 	}
 }
