@@ -44,7 +44,7 @@ async function generateStoreArt() {
   const logoSvg = fs.readFileSync(path.join(repoRoot, "frontend", "images", "logo.svg"));
   const outputDir = path.join(repoRoot, "dist", "store");
   fs.mkdirSync(outputDir, { recursive: true });
-  const { Resvg } = await ensureImport("@resvg/resvg-js", "Store logo generation");
+  const { Resvg } = await ensureImport("@resvg/resvg-js", "Store art generation");
   for (const art of STORE_ART) {
     const svg = storeArtSvg(logoSvg, art.width, art.height);
     const png = new Resvg(svg, {

@@ -68,7 +68,7 @@ switch ($Task) {
     }
     "store-art" {
         Ensure-HackNpm "@resvg/resvg-js"
-        & node (Join-Path $PSScriptRoot "hack\msstore\store-logo.mjs")
+        & node (Join-Path $PSScriptRoot "hack\msstore\store-art.mjs")
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
     "build" {
