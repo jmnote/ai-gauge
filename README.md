@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/screenshots/aigauge-native-light.png" width="320" alt="AI Gauge Light theme">
-  <img src="docs/screenshots/aigauge-native-dark.png" width="320" alt="AI Gauge Dark theme">
+  <img src="docs/screenshots/aigauge-main-light.png" width="320" alt="AI Gauge Light theme">
+  <img src="docs/screenshots/aigauge-main-dark.png" width="320" alt="AI Gauge Dark theme">
 </p>
 
 ## Features

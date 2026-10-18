@@ -37,7 +37,7 @@ const (
 	maxWindowWidth      = 600
 )
 
-func Run(frontendAssets fs.FS, icon []byte, startHidden bool) error {
+func Run(frontendAssets fs.FS, icon []byte, startHidden, openSettings bool) error {
 	rt := &runtime{icon: icon}
 	appService := usageapp.NewApp(rt.setContentHeight, rt.setWindowWidth, rt.setAlwaysOnTop, rt.hideToTray, rt.showSettingsWindow, rt.emitSettingsChanged, rt.setGlobalHotkey)
 	rt.appService = appService
@@ -84,6 +84,11 @@ func Run(frontendAssets fs.FS, icon []byte, startHidden bool) error {
 	})
 	rt.configureWindow()
 	rt.configureTray()
+	if openSettings {
+		rt.application.Event.OnApplicationEvent(events.Common.ApplicationStarted, func(_ *application.ApplicationEvent) {
+			rt.showSettingsWindow()
+		})
+	}
 	return rt.application.Run()
 }
 

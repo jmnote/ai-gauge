@@ -43,19 +43,18 @@ Listings:
         - Global hotkey toggle to show and hide the window
         - Optional Windows startup with the window shown or in the system tray
         - Independent warning and critical thresholds in 5% steps or disabled
-      ReleaseNotes: Provider refresh intervals now support a 30-second option in
-        Settings for faster quota updates. Background Antigravity checks
-        suppress momentary console window flashes during CLI queries. Codex
-        diagnostics now report clearer details when rate-limit data is missing
-        or out of range.
+      ReleaseNotes: Codex and Claude cards now display monthly usage limits when
+        available alongside short-term rate limits, showing remaining and limit
+        amounts with compact formatting. Unabridged usage amounts are available
+        in the provider status panel.
       Images:
         - FileName: aigauge-native-dark.png
           FileStatus: Uploaded
-          Id: "1152922700027166773"
+          Id: "1152922700028006916"
           ImageType: Screenshot
         - FileName: aigauge-native-light.png
           FileStatus: Uploaded
-          Id: "1152922700027167278"
+          Id: "1152922700028007109"
           ImageType: Screenshot
       RecommendedHardware: []
       MinimumHardware: []
@@ -119,9 +118,9 @@ NotesForCertification: >-
   present, confirm their account details distinguish the cards.
 
   4. Open a provider's status dot to inspect the status card, fetch-failure
-  count, reset credits when available, and the Refresh action. Reopen Settings,
-  remove the connected provider, and confirm its AI Gauge credential and card
-  are removed.
+  count, reset credits and usage amounts when available, and the Refresh action.
+  Reopen Settings, remove the connected provider, and confirm its AI Gauge
+  credential and card are removed.
 
   5. Confirm Start with Windows defaults to Off. Test Show window and Start in
   tray across sign-in, and confirm a manual Start-menu launch still shows the
@@ -143,10 +142,10 @@ StatusDetails:
   CertificationReports: []
 FileUploadUrl: null
 ApplicationPackages:
-  - FileName: aigauge_0.12.0.0_x64.msix
+  - FileName: ai-gauge_0.0.0.0_x64.msix
     FileStatus: Uploaded
     Id: "2000000000098765432"
-    Version: 0.12.0.0
+    Version: 0.0.0.0
     Architecture: x64
     Languages:
       - en-US

@@ -28,10 +28,10 @@ Listings:
         - Global hotkey toggle to show and hide the window
         - Optional Windows startup with the window shown or in the system tray
         - Independent warning and critical thresholds in 5% steps or disabled
-      ReleaseNotes: Codex and Claude cards now display monthly usage limits
-        when available alongside short-term rate limits, showing remaining and
-        limit amounts with compact formatting. Unabridged usage amounts are
-        available in the provider status panel.
+      ReleaseNotes: Provider refresh intervals now include 2-minute and
+        20-minute options in Settings. Settings also links to the AI Gauge
+        GitHub repository and Microsoft Store page next to the version number.
+        Usage API calls now send an AI Gauge User-Agent header.
 
 NotesForCertification: |
   AI Gauge is a Windows tray widget for Codex, Claude Code, GitHub Copilot, and

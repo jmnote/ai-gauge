@@ -112,23 +112,27 @@ the response is written.
 
 ## Listing screenshots
 
-Capture the native Wails window in both themes:
+Capture the native Wails main and Settings windows in both themes:
 
 ```powershell
 .\build.ps1 screenshot
 ```
 
-`screenshot-light`/`screenshot-dark` launch the app with its configured provider instances.
-The combined task runs the Light and Dark captures sequentially and writes:
+The task builds the app and launches it once with `--settings`, which opens the Settings window at
+startup alongside the main window, using its configured provider instances. After the render wait it
+presses the Settings **Light** button and captures both windows, then presses **Dark** and captures
+them again, so both themes show the same usage data. It writes:
 
-- `docs/screenshots/aigauge-native-light.png`
-- `docs/screenshots/aigauge-native-dark.png`
+- `docs/screenshots/aigauge-main-light.png`
+- `docs/screenshots/aigauge-main-dark.png`
+- `docs/screenshots/aigauge-settings-light.png`
+- `docs/screenshots/aigauge-settings-dark.png`
 
-Individual captures can be run with `screenshot-light` or `screenshot-dark`. To adjust the render
-wait, invoke the capture helper directly, for example:
+Pressing the theme buttons saves the theme like a normal Settings change, so the stored theme is
+Dark afterwards. To adjust the render wait, invoke the capture helper directly, for example:
 
 ```powershell
-.\hack\screenshot.ps1 -Theme light -RenderWaitSeconds 5
+.\hack\screenshot.ps1 -RenderWaitSeconds 5
 ```
 
 Capturing live provider data needs real logged-in accounts and a sufficiently long
@@ -184,6 +188,4 @@ If a settings write fails, the UI reloads the saved values and displays a notifi
 
 ## Theme behavior
 
-The application supports `--theme=light`, `--theme=dark`, and `--theme=system`. A forced command-line
-theme is used for screenshots without overwriting the user's stored theme preference. Choosing a
-theme in Settings updates the local preference.
+Choosing a theme in Settings updates the local preference.

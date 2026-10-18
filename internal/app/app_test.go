@@ -94,17 +94,13 @@ func withIsolatedStores(t *testing.T) *memTokenStore {
 	return authStore
 }
 
-func TestAppGetVersionAndThemeOverride(t *testing.T) {
+func TestAppGetVersion(t *testing.T) {
 	defer func(saved string) { version.Version = saved }(version.Version)
 	version.Version = "v1.2.3"
-	ThemeOverride = "dark"
 
 	app := NewApp(nil, nil, nil, nil, nil, nil, nil)
 	if app.GetVersion() != "v1.2.3" {
 		t.Errorf("GetVersion() = %q, want %q", app.GetVersion(), "v1.2.3")
-	}
-	if app.GetThemeOverride() != "dark" {
-		t.Errorf("GetThemeOverride() = %q, want %q", app.GetThemeOverride(), "dark")
 	}
 }
 

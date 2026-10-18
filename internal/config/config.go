@@ -26,7 +26,7 @@ type ProviderInstance struct {
 const (
 	MinRefreshInterval     = 1
 	MaxRefreshInterval     = 3600
-	DefaultRefreshInterval = 120
+	DefaultRefreshInterval = 180
 )
 
 // Threshold is one gauge warning level: whether it is active and the percent

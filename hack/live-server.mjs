@@ -63,7 +63,7 @@ let mockSettings = {
     id: key.toLowerCase(), type: key.toLowerCase(), label: key, enabled: true,
   })),
   windowWidth: 250,
-  theme: 'system',
+  theme: ['light', 'dark', 'system'].includes(theme) ? theme : 'system',
   refreshInterval: 120,
   thresholds: { warning: { enabled: true, value: 50 }, critical: { enabled: true, value: 20 } },
   hotkeyShortcut: '',
@@ -115,7 +115,6 @@ export const Call = {
         name.endsWith('SetThresholds') || name.endsWith('SetHotkeyShortcut') ||
         name.endsWith('SetProviderRefreshInterval') || name.endsWith('SetProviderOrder')) return null;
     if (name.endsWith('AddProviderInstance') || name.endsWith('RemoveProviderInstance')) return null;
-    if (name.endsWith('GetThemeOverride')) return ['light', 'dark', 'system'].includes(theme) ? theme : '';
     if (name.endsWith('GetVersion')) return 'vDEV';
     if (name.endsWith('SetContentHeight')) return null;
     if (name.endsWith('SetWindowWidth')) return null;
