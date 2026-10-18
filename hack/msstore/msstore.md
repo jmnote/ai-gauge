@@ -83,14 +83,7 @@ Use `hack/msstore/submission.mjs` or `build.ps1` tasks to inspect and validate s
 
 # Retrieve the current submission JSON and YAML snapshot from Partner Center (requires submission.env)
 .\build.ps1 submission-snapshot
-
-# Render the Store logos (9:16 poster art and 1:1 box art) from logo.svg into dist/store
-.\build.ps1 store-art
 ```
-
-Upload `dist/store/poster-art-1440x2160.png` and `dist/store/box-art-2160x2160.png` under
-**Store listing > Store logos** in Partner Center. Poster art is the default Windows logo and is
-required on Xbox; box art is used in other Store layouts.
 
 ---
 
