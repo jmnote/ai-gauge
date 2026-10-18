@@ -73,7 +73,6 @@ func FetchCopilotRawUsage(tokenKey string) ([]byte, error) {
 	return fetchAuthorizedJSON(ctx, "https://api.github.com/copilot_internal/user", "GitHub Copilot", map[string]string{
 		"Authorization": "Bearer " + accessToken,
 		"Accept":        "application/json",
-		"User-Agent":    "AI-Gauge",
 	})
 }
 
@@ -95,7 +94,6 @@ func getCopilotUsage(ctx context.Context, deps providerDeps, tokenKey string, ac
 	headers := map[string]string{
 		"Authorization": "Bearer " + accessToken,
 		"Accept":        "application/json",
-		"User-Agent":    "AI-Gauge",
 	}
 
 	data, err := fetchAuthorizedJSON(ctx, "https://api.github.com/copilot_internal/user", "GitHub Copilot", headers)

@@ -13,9 +13,9 @@ import (
 	"github.com/jmnote/ai-gauge/internal/auth"
 	"github.com/jmnote/ai-gauge/internal/config"
 	"github.com/jmnote/ai-gauge/internal/providers"
+	"github.com/jmnote/ai-gauge/internal/version"
 )
 
-var AppVersion = "v0.0.0"
 var ThemeOverride string
 
 // providerTypeInfo pairs a provider type id with its human-readable label and
@@ -135,7 +135,7 @@ func (a *App) SetWindowWidth(width int) {
 	a.onWindowWidth(width)
 }
 
-func (a *App) GetVersion() string { return AppVersion }
+func (a *App) GetVersion() string { return version.Version }
 
 func (a *App) GetThemeOverride() string { return ThemeOverride }
 
