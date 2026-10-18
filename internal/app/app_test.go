@@ -10,6 +10,7 @@ import (
 	"github.com/jmnote/ai-gauge/internal/auth"
 	"github.com/jmnote/ai-gauge/internal/config"
 	"github.com/jmnote/ai-gauge/internal/providers"
+	"github.com/jmnote/ai-gauge/internal/version"
 )
 
 func TestGetSettingsReturnsParseErrorWithoutOverwritingFile(t *testing.T) {
@@ -94,7 +95,8 @@ func withIsolatedStores(t *testing.T) *memTokenStore {
 }
 
 func TestAppGetVersionAndThemeOverride(t *testing.T) {
-	AppVersion = "v1.2.3"
+	defer func(saved string) { version.Version = saved }(version.Version)
+	version.Version = "v1.2.3"
 	ThemeOverride = "dark"
 
 	app := NewApp(nil, nil, nil, nil, nil, nil, nil)

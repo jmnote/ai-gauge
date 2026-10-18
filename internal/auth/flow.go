@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/jmnote/ai-gauge/internal/httpclient"
 )
 
 // ErrReauthenticationRequired marks a credential failure that retrying cannot
@@ -241,12 +243,6 @@ type tokenEndpointError struct {
 
 func (e *tokenEndpointError) Error() string { return e.message }
 
-// tokenHTTPClient is shared by exchangeCodeForToken and refreshTokenRaw so
-// repeated token-endpoint calls (e.g. several provider instances refreshing
-// at startup) can reuse keep-alive connections instead of each building its
-// own throwaway client.
-var tokenHTTPClient = &http.Client{Timeout: 15 * time.Second}
-
 // postTokenRequest POSTs values to an OAuth token endpoint and returns the
 // parsed response together with its raw body. exchangeCodeForToken and
 // refreshTokenRaw share this request/response handling; only the values they
@@ -259,7 +255,7 @@ func postTokenRequest(ctx context.Context, tokenURL string, values url.Values) (
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := tokenHTTPClient.Do(req)
+	resp, err := httpclient.Client().Do(req)
 	if err != nil {
 		return tokenExchangeResponse{}, nil, err
 	}
@@ -683,7 +679,7 @@ func BeginDeviceAuthFlow(cfgType, tokenKey string) (authURL, userCode string, er
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := tokenHTTPClient.Do(req)
+	resp, err := httpclient.Client().Do(req)
 	if err != nil {
 		cancel()
 		return "", "", fmt.Errorf("device code request failed: %w", err)

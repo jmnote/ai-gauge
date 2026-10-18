@@ -6,10 +6,9 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"time"
-)
 
-var httpClient = &http.Client{Timeout: 10 * time.Second}
+	"github.com/jmnote/ai-gauge/internal/httpclient"
+)
 
 // httpStatusError is a usage request that reached the service and came back
 // with a non-200 status. It carries the code separately from the message so the
@@ -41,7 +40,7 @@ func doAuthorizedRequest(request *http.Request, providerLabel string, headers ma
 	for key, value := range headers {
 		request.Header.Set(key, value)
 	}
-	response, err := httpClient.Do(request)
+	response, err := httpclient.Client().Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch %s usage: %w", providerLabel, err)
 	}
