@@ -239,15 +239,17 @@ providerAddDialogDeviceOpen.addEventListener('click', async () => {
       }, 2000);
     } catch { /* best effort clipboard */ }
   }
-  const authUrl = pendingAuthCode?.authUrl || 'https://github.com/login/device';
+  await openExternalURL(pendingAuthCode?.authUrl || 'https://github.com/login/device');
+});
+async function openExternalURL(url) {
   try {
-    await rpc('OpenURL', authUrl);
+    await rpc('OpenURL', url);
   } catch {
     if (wails?.Browser?.OpenURL) {
-      wails.Browser.OpenURL(authUrl);
+      wails.Browser.OpenURL(url);
     }
   }
-});
+}
 function confirmRemove(instance) {
   confirmDialogTitle.textContent = `Remove ${providerDisplayName(instance)}?`;
   confirmDialogMessage.textContent = instance.type === 'antigravity'
@@ -897,6 +899,13 @@ resizeToContent();
 // ---------------------------------------------------------------------------
 // Version
 // ---------------------------------------------------------------------------
+
+document.getElementById('github-link')?.addEventListener('click', () => {
+  openExternalURL('https://github.com/jmnote/ai-gauge');
+});
+document.getElementById('store-link')?.addEventListener('click', () => {
+  openExternalURL('https://apps.microsoft.com/detail/9mt65km56p99');
+});
 
 try {
   const ver = await rpc('GetVersion');
