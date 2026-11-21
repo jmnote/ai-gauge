@@ -161,16 +161,23 @@ jobs:
           fi
           mkdir -p published
           gh release download "$tag" --pattern "$name" --dir published
-          expected="$(sha256sum "published/$name" | cut -d' ' -f1)  $name"
+          hash="$(sha256sum "published/$name" | cut -d' ' -f1)"
           if grep -qxF SHA256SUMS.txt <<<"$assets"; then
+            # Compare only the executable's entry: older releases also list
+            # the MSIX, and the file may use CRLF line endings.
             gh release download "$tag" --pattern SHA256SUMS.txt --output published/SHA256SUMS.txt
-            if [[ "$(tr -d '\r' < published/SHA256SUMS.txt)" != "$expected" ]]; then
+            listed="$(tr -d '\r' < published/SHA256SUMS.txt | awk -v n="$name" '$2 == n { print $1 }')"
+            if [[ -z "$listed" ]]; then
+              echo "SHA256SUMS.txt on $tag has no entry for $name" >&2
+              exit 1
+            fi
+            if [[ "$listed" != "$hash" ]]; then
               echo "SHA256SUMS.txt on $tag does not match the published $name" >&2
               exit 1
             fi
-            echo "$name and SHA256SUMS.txt are already on $tag."
+            echo "$name and its checksum are already on $tag."
           else
-            printf '%s\n' "$expected" > published/SHA256SUMS.txt
+            printf '%s  %s\n' "$hash" "$name" > published/SHA256SUMS.txt
             gh release upload "$tag" published/SHA256SUMS.txt
           fi
 
