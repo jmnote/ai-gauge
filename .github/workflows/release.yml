@@ -139,17 +139,39 @@ jobs:
         shell: bash
         run: |
           tag="$RELEASE_TAG"
-          files=(dist/*.exe dist/SHA256SUMS.txt)
-          # A release created beforehand (for example from the GitHub UI) still
-          # gets the portable executable and checksums.
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" "${files[@]}" --clobber
-          else
+          exes=(dist/*.exe)
+          exe="${exes[0]}"
+          name="$(basename "$exe")"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" \
               --target "$GITHUB_SHA" \
               --title "$tag" \
               --generate-notes \
-              "${files[@]}"
+              "$exe" dist/SHA256SUMS.txt
+            exit 0
+          fi
+          # The release exists, created beforehand (for example from the GitHub
+          # UI) or by an earlier run of this tag. Only add what is missing: an
+          # executable already published is never replaced, since a winget
+          # manifest may record its SHA-256 and a rebuild can differ byte for byte.
+          assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
+          if ! grep -qxF "$name" <<<"$assets"; then
+            gh release upload "$tag" "$exe" dist/SHA256SUMS.txt --clobber
+            exit 0
+          fi
+          mkdir -p published
+          gh release download "$tag" --pattern "$name" --dir published
+          expected="$(sha256sum "published/$name" | cut -d' ' -f1)  $name"
+          if grep -qxF SHA256SUMS.txt <<<"$assets"; then
+            gh release download "$tag" --pattern SHA256SUMS.txt --output published/SHA256SUMS.txt
+            if [[ "$(tr -d '\r' < published/SHA256SUMS.txt)" != "$expected" ]]; then
+              echo "SHA256SUMS.txt on $tag does not match the published $name" >&2
+              exit 1
+            fi
+            echo "$name and SHA256SUMS.txt are already on $tag."
+          else
+            printf '%s\n' "$expected" > published/SHA256SUMS.txt
+            gh release upload "$tag" published/SHA256SUMS.txt
           fi
 
   winget:
@@ -167,10 +189,15 @@ jobs:
           $id = 'jmnote.ai-gauge'
           # The first version of the package is submitted by hand; this step
           # updates it for later releases and skips until it exists.
-          gh api repos/microsoft/winget-pkgs/contents/manifests/j/jmnote/ai-gauge --silent 2>$null
+          # Only "not found" means not registered yet; any other failure (rate
+          # limit, outage, bad credentials) fails the job rather than skipping.
+          $check = gh api repos/microsoft/winget-pkgs/contents/manifests/j/jmnote/ai-gauge --silent 2>&1
           if ($LASTEXITCODE -ne 0) {
-            Write-Host "$id is not in winget-pkgs yet; skipping."
-            exit 0
+            if ("$check" -match '\(HTTP 404\)') {
+              Write-Host "$id is not in winget-pkgs yet; skipping."
+              exit 0
+            }
+            throw "Could not check winget-pkgs for ${id}: $check"
           }
           if (-not $env:WINGET_TOKEN) { throw "The WINGET_TOKEN secret is not set." }
           $url = gh release view $env:RELEASE_TAG --json assets --jq '.assets[] | select(.name | endswith(".exe")) | .url'
