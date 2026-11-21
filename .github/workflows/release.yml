@@ -122,6 +122,9 @@ jobs:
   release:
     needs: package
     runs-on: windows-latest
+    outputs:
+      # The executable this release publishes; the winget job submits exactly it.
+      exe: ${{ steps.release.outputs.exe }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -133,6 +136,7 @@ jobs:
           path: dist
 
       - name: Create or update GitHub release
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
@@ -142,6 +146,7 @@ jobs:
           exes=(dist/*.exe)
           exe="${exes[0]}"
           name="$(basename "$exe")"
+          echo "exe=$name" >> "$GITHUB_OUTPUT"
           if ! gh release view "$tag" >/dev/null 2>&1; then
             gh release create "$tag" \
               --target "$GITHUB_SHA" \
@@ -192,6 +197,7 @@ jobs:
           GH_REPO: ${{ github.repository }}
           WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_EXE: ${{ needs.release.outputs.exe }}
         run: |
           $id = 'jmnote.ai-gauge'
           # The first version of the package is submitted by hand; this step
@@ -207,8 +213,11 @@ jobs:
             throw "Could not check winget-pkgs for ${id}: $check"
           }
           if (-not $env:WINGET_TOKEN) { throw "The WINGET_TOKEN secret is not set." }
-          $url = gh release view $env:RELEASE_TAG --json assets --jq '.assets[] | select(.name | endswith(".exe")) | .url'
-          if ($LASTEXITCODE -ne 0 -or -not $url) { throw "No portable executable on release $env:RELEASE_TAG." }
+          if (-not $env:RELEASE_EXE) { throw "The release job did not report its executable." }
+          # Select the asset by its exact name, so another .exe on a release
+          # created beforehand is never submitted.
+          $url = gh release view $env:RELEASE_TAG --json assets --jq '.assets[] | select(.name == env.RELEASE_EXE) | .url'
+          if ($LASTEXITCODE -ne 0 -or -not $url) { throw "$env:RELEASE_EXE is not on release $env:RELEASE_TAG." }
           $version = $env:RELEASE_TAG.TrimStart('v')
           Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
           .\wingetcreate.exe update $id --version $version --urls $url --submit --token $env:WINGET_TOKEN
