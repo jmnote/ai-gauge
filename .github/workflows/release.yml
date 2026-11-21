@@ -90,13 +90,16 @@ jobs:
       - name: Create checksums
         shell: pwsh
         run: |
+          # Only the portable executable is attached to the GitHub release (and
+          # installed by winget); the unsigned MSIX goes to the Microsoft Store,
+          # which signs it, so it is not listed here.
           # -Path (wildcard) rather than -LiteralPath: -Include is silently
           # ignored without either a wildcard path or -Recurse, which would
           # pick up hack/package.mjs's own build-time copy of ai-gauge.exe
           # under dist\staging\<arch>\ - not part of the release - alongside
           # everything else in the tree. This form stays non-recursive and
           # matches dist\'s own contents only.
-          $packages = @(Get-ChildItem -Path (Join-Path dist '*') -Include *.msix, *.exe -File)
+          $packages = @(Get-ChildItem -Path (Join-Path dist '*') -Include *.exe -File)
           if ($packages.Count -eq 0) {
             throw "No release artifacts were produced."
           }
@@ -129,24 +132,53 @@ jobs:
           name: release-msix
           path: dist
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         shell: bash
         run: |
           tag="$RELEASE_TAG"
+          files=(dist/*.exe dist/SHA256SUMS.txt)
+          # A release created beforehand (for example from the GitHub UI) still
+          # gets the portable executable and checksums.
           if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists; skipping."
-            exit 0
+            gh release upload "$tag" "${files[@]}" --clobber
+          else
+            gh release create "$tag" \
+              --target "$GITHUB_SHA" \
+              --title "$tag" \
+              --generate-notes \
+              "${files[@]}"
           fi
-          gh release create "$tag" \
-            --target "$GITHUB_SHA" \
-            --title "$tag" \
-            --generate-notes \
-            dist/*.msix \
-            dist/*.exe \
-            dist/SHA256SUMS.txt
+
+  winget:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - name: Submit the release to winget
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $id = 'jmnote.ai-gauge'
+          # The first version of the package is submitted by hand; this step
+          # updates it for later releases and skips until it exists.
+          gh api repos/microsoft/winget-pkgs/contents/manifests/j/jmnote/ai-gauge --silent 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "$id is not in winget-pkgs yet; skipping."
+            exit 0
+          }
+          if (-not $env:WINGET_TOKEN) { throw "The WINGET_TOKEN secret is not set." }
+          $url = gh release view $env:RELEASE_TAG --json assets --jq '.assets[] | select(.name | endswith(".exe")) | .url'
+          if ($LASTEXITCODE -ne 0 -or -not $url) { throw "No portable executable on release $env:RELEASE_TAG." }
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update $id --version $version --urls $url --submit --token $env:WINGET_TOKEN
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   publish:
     needs: package

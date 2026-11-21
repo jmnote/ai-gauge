@@ -43,9 +43,17 @@ git tag v0.6.2
 git push origin v0.6.2
 ```
 
-The `Release` GitHub Actions workflow (`.github/workflows/release.yml`) builds the MSIX, attaches both
-the MSIX and the standalone portable executable (`ai-gauge_<version>_x64.exe`) plus `SHA256SUMS.txt` to
-the GitHub release, and publishes the package to the Microsoft Store.
+The `Release` GitHub Actions workflow (`.github/workflows/release.yml`) builds the MSIX and the
+standalone portable executable (`ai-gauge_<version>_x64.exe`). It attaches the executable and its
+`SHA256SUMS.txt` to the GitHub release, creating the release or, if it already exists (for example
+created from the GitHub UI), uploading to it. It publishes the MSIX to the Microsoft Store, which
+signs it; the unsigned MSIX is not attached to the GitHub release because it cannot be installed as is.
+
+Once the `jmnote.ai-gauge` package exists in [winget-pkgs](https://github.com/microsoft/winget-pkgs),
+the workflow also submits each release to winget with `wingetcreate update`, pointing at the portable
+executable. This needs a `WINGET_TOKEN` secret: a classic personal access token with the
+`public_repo` scope, which `wingetcreate` uses to push to a fork of winget-pkgs and open the pull
+request. The first version of the package is submitted by hand.
 
 The portable `.exe` runs unsigned and needs no installation - unlike the MSIX, which either goes through
 Store certification or needs a certificate matching the package Publisher installed and trusted
