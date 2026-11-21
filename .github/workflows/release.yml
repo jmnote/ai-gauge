@@ -90,13 +90,16 @@ jobs:
       - name: Create checksums
         shell: pwsh
         run: |
+          # Only the portable executable is attached to the GitHub release (and
+          # installed by winget); the unsigned MSIX goes to the Microsoft Store,
+          # which signs it, so it is not listed here.
           # -Path (wildcard) rather than -LiteralPath: -Include is silently
           # ignored without either a wildcard path or -Recurse, which would
           # pick up hack/package.mjs's own build-time copy of ai-gauge.exe
           # under dist\staging\<arch>\ - not part of the release - alongside
           # everything else in the tree. This form stays non-recursive and
           # matches dist\'s own contents only.
-          $packages = @(Get-ChildItem -Path (Join-Path dist '*') -Include *.msix, *.exe -File)
+          $packages = @(Get-ChildItem -Path (Join-Path dist '*') -Include *.exe -File)
           if ($packages.Count -eq 0) {
             throw "No release artifacts were produced."
           }
@@ -119,6 +122,9 @@ jobs:
   release:
     needs: package
     runs-on: windows-latest
+    outputs:
+      # The executable this release publishes; the winget job submits exactly it.
+      exe: ${{ steps.release.outputs.exe }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
@@ -129,24 +135,93 @@ jobs:
           name: release-msix
           path: dist
 
-      - name: Create GitHub release
+      - name: Create or update GitHub release
+        id: release
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}
         shell: bash
         run: |
           tag="$RELEASE_TAG"
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists; skipping."
+          exes=(dist/*.exe)
+          exe="${exes[0]}"
+          name="$(basename "$exe")"
+          echo "exe=$name" >> "$GITHUB_OUTPUT"
+          if ! gh release view "$tag" >/dev/null 2>&1; then
+            gh release create "$tag" \
+              --target "$GITHUB_SHA" \
+              --title "$tag" \
+              --generate-notes \
+              "$exe" dist/SHA256SUMS.txt
             exit 0
           fi
-          gh release create "$tag" \
-            --target "$GITHUB_SHA" \
-            --title "$tag" \
-            --generate-notes \
-            dist/*.msix \
-            dist/*.exe \
-            dist/SHA256SUMS.txt
+          # The release exists, created beforehand (for example from the GitHub
+          # UI) or by an earlier run of this tag. Only add what is missing: an
+          # executable already published is never replaced, since a winget
+          # manifest may record its SHA-256 and a rebuild can differ byte for byte.
+          assets="$(gh release view "$tag" --json assets --jq '.assets[].name')"
+          if ! grep -qxF "$name" <<<"$assets"; then
+            gh release upload "$tag" "$exe" dist/SHA256SUMS.txt --clobber
+            exit 0
+          fi
+          mkdir -p published
+          gh release download "$tag" --pattern "$name" --dir published
+          hash="$(sha256sum "published/$name" | cut -d' ' -f1)"
+          if grep -qxF SHA256SUMS.txt <<<"$assets"; then
+            # Compare only the executable's entry: older releases also list
+            # the MSIX, and the file may use CRLF line endings.
+            gh release download "$tag" --pattern SHA256SUMS.txt --output published/SHA256SUMS.txt
+            listed="$(tr -d '\r' < published/SHA256SUMS.txt | awk -v n="$name" '$2 == n { print $1 }')"
+            if [[ -z "$listed" ]]; then
+              echo "SHA256SUMS.txt on $tag has no entry for $name" >&2
+              exit 1
+            fi
+            if [[ "$listed" != "$hash" ]]; then
+              echo "SHA256SUMS.txt on $tag does not match the published $name" >&2
+              exit 1
+            fi
+            echo "$name and its checksum are already on $tag."
+          else
+            printf '%s  %s\n' "$hash" "$name" > published/SHA256SUMS.txt
+            gh release upload "$tag" published/SHA256SUMS.txt
+          fi
+
+  winget:
+    needs: release
+    runs-on: windows-latest
+    steps:
+      - name: Submit the release to winget
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_EXE: ${{ needs.release.outputs.exe }}
+        run: |
+          $id = 'jmnote.ai-gauge'
+          # The first version of the package is submitted by hand; this step
+          # updates it for later releases and skips until it exists.
+          # Only "not found" means not registered yet; any other failure (rate
+          # limit, outage, bad credentials) fails the job rather than skipping.
+          $check = gh api repos/microsoft/winget-pkgs/contents/manifests/j/jmnote/ai-gauge --silent 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            if ("$check" -match '\(HTTP 404\)') {
+              Write-Host "$id is not in winget-pkgs yet; skipping."
+              exit 0
+            }
+            throw "Could not check winget-pkgs for ${id}: $check"
+          }
+          if (-not $env:WINGET_TOKEN) { throw "The WINGET_TOKEN secret is not set." }
+          if (-not $env:RELEASE_EXE) { throw "The release job did not report its executable." }
+          # Select the asset by its exact name, so another .exe on a release
+          # created beforehand is never submitted.
+          $url = gh release view $env:RELEASE_TAG --json assets --jq '.assets[] | select(.name == env.RELEASE_EXE) | .url'
+          if ($LASTEXITCODE -ne 0 -or -not $url) { throw "$env:RELEASE_EXE is not on release $env:RELEASE_TAG." }
+          $version = $env:RELEASE_TAG.TrimStart('v')
+          Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe update $id --version $version --urls $url --submit --token $env:WINGET_TOKEN
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
   publish:
     needs: package
